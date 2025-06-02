@@ -24,7 +24,7 @@ def validar_arquivo_sql(nome_arquivo):
 
 class SistemaVendas(ttk.Window):
     def __init__(self, usuario_logado):
-        super().__init__(themename="superhero")  # Tema escuro e moderno
+        super().__init__(themename="superhero", icon="img/graal.ico")
         self.title("Graal")
         self.geometry("1320x720")
         self.resizable(True, True)

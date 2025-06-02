@@ -114,7 +114,7 @@ class TelaRecibo(TelaBase):
             return
         recibo = self._recibo_para_imprimir
         texto = (
-            f"GRAAL VENDAS\n"
+            f"GRAAL\n"
             f"Data: {recibo['data']}\n"
             f"Pedido: {recibo['pedido']}\n"
             f"CPF Cliente: {recibo['cpf_cliente']}\n"

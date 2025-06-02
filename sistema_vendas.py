@@ -9,6 +9,7 @@ from telas.tela_recibo import TelaRecibo
 from telas.tela_login import iniciar_tela_login
 from servicos.database import conectar_banco_de_dados, inicializar_banco
 from servicos.servico_funcionarios import inicializar_cargos
+import platform
 import os
 import sys
 
@@ -24,7 +25,7 @@ def validar_arquivo_sql(nome_arquivo):
 class SistemaVendas(ttk.Window):
     def __init__(self, usuario_logado):
         super().__init__(themename="flatly")
-        self.title("Graal Vendas")
+        self.title("Graal")
         self.geometry("1320x720")
         self.resizable(True, True)
         self.usuario_logado = usuario_logado
@@ -56,11 +57,11 @@ class SistemaVendas(ttk.Window):
         self.main_frame.pack(side="right", fill="both", expand=True)
 
         icones = {
-            'inicial': '🏠',
-            'produtos': '📦',
-            'comandas': '🧾',
-            'pagamento': '🛒',
-            'recibo': '🧾',
+            'inicial': '\u2302',
+            'produtos': '\u25A3',
+            'comandas': '\u270D',
+            'pagamento': '\u2708',
+            'recibo': '\u270D',
         }
 
         self.botoes_menu = {}

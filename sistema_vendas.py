@@ -24,7 +24,16 @@ def validar_arquivo_sql(nome_arquivo):
 
 class SistemaVendas(ttk.Window):
     def __init__(self, usuario_logado):
-        super().__init__(themename="superhero", icon="img/graal.ico")
+        super().__init__(themename="superhero")  # Tema escuro e moderno
+        # Definir ícone da janela após o init
+        try:
+            import os
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            icon_path = os.path.join(base_dir, "img", "graal.ico")
+            self.iconbitmap(icon_path)
+        except Exception as e:
+            print(f"Não foi possível definir o ícone: {e}")
+
         self.title("Graal")
         self.geometry("1320x720")
         self.resizable(True, True)

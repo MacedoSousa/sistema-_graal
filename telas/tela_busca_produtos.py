@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from telas.tela_base import TelaBase
 from servicos.servico_produtos import obter_todos_os_produtos_dict
 
 class TelaBuscaProdutos(tk.Toplevel):
@@ -43,6 +42,13 @@ class TelaBuscaProdutos(tk.Toplevel):
         self.button_selecionar.pack(side="left", padx=8)
 
         self.treeview_produtos.bind("<Double-1>", lambda e: self.selecionar_produto())
+
+    def on_show(self):
+        # Atualiza a listagem de produtos sempre que a aba/modal for exibida
+        self.produtos = obter_todos_os_produtos_dict()
+        self.treeview_produtos.delete(*self.treeview_produtos.get_children())
+        for produto in self.produtos:
+            self.treeview_produtos.insert("", "end", values=(produto['id_produto'], produto['nome'], f"{produto['preco']:.2f}"))
 
     def selecionar_produto(self):
         selecionados = self.treeview_produtos.selection()

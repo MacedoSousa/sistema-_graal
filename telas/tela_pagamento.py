@@ -1,20 +1,13 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import traceback
-import re
-
 from telas.tela_base import TelaBase
 from servicos.servico_pagamento import registrar_pagamento
 from servicos.servico_comandas import obter_comanda, fechar_comanda
-
-
-def cpf_valido(cpf):
-    return re.match(r'^\d{11}$', cpf) is not None
-
+from servicos.utils import validar_cpf, campo_obrigatorio, logar_erro
 
 class TelaPagamento(TelaBase):
     def __init__(self, container, conn):
-        super().__init__(container, title="Finalizar Comanda / Pagamento")
+        super().__init__(container, title="")
         self.conn = conn
         self.numero_comanda = None
         self.comanda = None
@@ -26,7 +19,7 @@ class TelaPagamento(TelaBase):
         frame_comanda = ttk.LabelFrame(self, text="Selecione a Comanda para Pagamento", bootstyle="primary", padding=15)
         frame_comanda.grid(row=0, column=0, padx=30, pady=18, sticky="ew")
         ttk.Label(frame_comanda, text="Número da Comanda:", font=("Arial", 12, "bold"), bootstyle="primary").grid(row=0, column=0, padx=5, pady=8, sticky="w")
-        self.comanda_entry = ttk.Entry(frame_comanda, font=("Arial", 12), width=10)
+        self.comanda_entry = ttk.Entry(frame_comanda, font=("Arial", 12), width=12)
         self.comanda_entry.grid(row=0, column=1, padx=5, pady=8, sticky="w")
         ttk.Button(frame_comanda, text="Buscar", bootstyle="info", command=self.buscar_comanda).grid(row=0, column=2, padx=8, pady=8)
 
@@ -44,11 +37,15 @@ class TelaPagamento(TelaBase):
         self.treeview_itens.column("Subtotal", width=120)
         self.treeview_itens.pack(fill="both", expand=True)
 
-        self.frame_pagamento = ttk.LabelFrame(self, text="Pagamento", bootstyle="success", padding=15)
-        self.frame_pagamento.grid(row=2, column=0, padx=30, pady=10, sticky="ew")
+        self.frame_pagamento = ttk.LabelFrame(self, text="Pagamento", bootstyle="success", padding=20)
+        self.frame_pagamento.grid(row=2, column=0, padx=30, pady=18, sticky="ew")
+        self.frame_pagamento.grid_columnconfigure(0, weight=1)
+        self.frame_pagamento.grid_columnconfigure(1, weight=1)
+
         ttk.Label(self.frame_pagamento, text="CPF do Cliente:", font=("Arial", 12, "bold"), bootstyle="primary").grid(row=0, column=0, padx=5, pady=8, sticky="w")
         self.cpf_entry = ttk.Entry(self.frame_pagamento, font=("Arial", 12))
         self.cpf_entry.grid(row=0, column=1, padx=5, pady=8, sticky="ew")
+
         ttk.Label(self.frame_pagamento, text="Forma de Pagamento:", font=("Arial", 12, "bold"), bootstyle="primary").grid(row=1, column=0, padx=5, pady=8, sticky="w")
         self.pagamento_combobox = ttk.Combobox(self.frame_pagamento,
                                                values=["Dinheiro", "Cartão de Crédito", "Cartão de Débito", "Pix"],
@@ -56,6 +53,7 @@ class TelaPagamento(TelaBase):
                                                state="readonly")
         self.pagamento_combobox.grid(row=1, column=1, padx=5, pady=8, sticky="ew")
         self.pagamento_combobox.current(0)
+
         self.label_total = ttk.Label(self.frame_pagamento, text="Total: R$ 0.00", font=("Arial", 16, "bold"), bootstyle="success")
         self.label_total.grid(row=2, column=0, columnspan=2, pady=10, sticky="e")
 
@@ -109,11 +107,11 @@ class TelaPagamento(TelaBase):
         cpf_cliente = self.cpf_entry.get().strip()
         forma_pagamento = self.pagamento_combobox.get()
 
-        if cpf_cliente and not cpf_valido(cpf_cliente):
+        if cpf_cliente and not validar_cpf(cpf_cliente):
             messagebox.showerror("Erro", "CPF inválido. Digite 11 números.")
             return
 
-        if not forma_pagamento:
+        if not campo_obrigatorio(forma_pagamento):
             messagebox.showerror("Erro", "Selecione a forma de pagamento.")
             return
 
@@ -147,6 +145,5 @@ class TelaPagamento(TelaBase):
                 self.master.telas['comandas'].atualizar_listagem_comandas()
 
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            messagebox.showerror("Erro", f"Erro ao finalizar pagamento:\n{e}")
+            logar_erro(e)
+            messagebox.showerror("Erro", f"Erro ao finalizar pagamento: {e}")

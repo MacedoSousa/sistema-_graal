@@ -1,14 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from telas.tela_base import TelaBase
-from servicos.servico_comandas import (
-    abrir_nova_comanda,
-    obter_comandas_abertas,
-    obter_comanda,
-    adicionar_item_a_comanda,
-)
+from servicos.servico_comandas import abrir_nova_comanda
 from telas.tela_adicionar_item_comanda import TelaAdicionarItemComanda
-
 
 class TelaComandas(ttk.Frame):
     def __init__(self, master, conn):
@@ -51,14 +44,6 @@ class TelaComandas(ttk.Frame):
         btn_atualizar.pack(side="left", padx=8)
 
         self.atualizar_listagem_comandas()
-        self._agendar_atualizacao()
-
-    def _agendar_atualizacao(self):
-        self.after(2000, self._atualizacao_periodica)
-
-    def _atualizacao_periodica(self):
-        self.atualizar_listagem_comandas()
-        self._agendar_atualizacao()
 
     def abrir_nova_comanda_ui(self):
         from servicos.servico_produtos import obter_total_de_produtos

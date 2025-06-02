@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from telas.tela_base import TelaBase
-from servicos.servico_comandas import obter_comanda, adicionar_item_a_comanda
+from servicos.servico_comandas import obter_comanda
 from telas.tela_busca_produtos import TelaBuscaProdutos
-from servicos.servico_produtos import checar_estoque, atualizar_estoque, obter_produto_por_codigo
+from servicos.servico_produtos import obter_produto_por_codigo
 
 class TelaAdicionarItemComanda(TelaBase):
     def __init__(self, master=None, numero_comanda=None):
@@ -11,13 +11,11 @@ class TelaAdicionarItemComanda(TelaBase):
         self.master = master
         self.numero_comanda = numero_comanda
 
-        # Título padronizado
         titulo = ttk.Label(self, text=f"Adicionar Itens à Comanda", font=("Arial", 18, "bold"), bootstyle="primary")
         titulo.grid(row=0, column=0, columnspan=2, pady=(12, 2), sticky="ew")
         label_comanda = ttk.Label(self, text=f"Comanda: {self.numero_comanda}", font=("Arial", 15, "bold"), bootstyle="info")
         label_comanda.grid(row=1, column=0, columnspan=2, pady=(0, 10), sticky="ew")
 
-        # Frame dos itens
         self.listagem_frame = ttk.LabelFrame(self, text="Itens da Comanda", bootstyle="primary", padding=10)
         self.listagem_frame.grid(row=2, column=0, columnspan=2, padx=18, pady=8, sticky="nsew")
         self.listagem_frame.grid_columnconfigure(0, weight=1)
@@ -33,7 +31,6 @@ class TelaAdicionarItemComanda(TelaBase):
         self.treeview_itens.pack(fill="both", expand=True)
         self.atualizar_itens_comanda()
 
-        # Frame dos botões
         self.frame_botoes = ttk.Frame(self)
         self.frame_botoes.grid(row=3, column=0, columnspan=2, pady=12)
         self.buscar_produto_button = ttk.Button(self.frame_botoes, text="Adicionar Produto à Comanda", bootstyle="success", command=self.buscar_produto)
@@ -42,13 +39,10 @@ class TelaAdicionarItemComanda(TelaBase):
         self.grid_rowconfigure(2, weight=1)
 
     def buscar_produto(self):
-        # Abrir a tela de busca de produtos, agora com campo de quantidade
         busca = TelaBuscaProdutos(self, callback_selecionar_produto=self.selecionar_produto_callback, solicitar_quantidade=True)
         self.wait_window(busca)
-        # O callback já define self.codigo_produto_selecionado
 
     def selecionar_produto_callback(self, codigo_produto, quantidade):
-        # Ao selecionar produto e quantidade, já insere na comanda
         from servicos.servico_produtos import obter_produto_por_codigo, checar_estoque, atualizar_estoque
         produto = obter_produto_por_codigo(codigo_produto)
         if not produto:
@@ -80,8 +74,6 @@ class TelaAdicionarItemComanda(TelaBase):
             return produto
         else:
             return None
-
-
 
 if __name__ == "__main__":
     root = tk.Tk()

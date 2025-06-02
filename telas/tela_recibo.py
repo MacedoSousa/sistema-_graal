@@ -1,4 +1,3 @@
-import tkinter as tk
 from tkinter import ttk
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
@@ -7,12 +6,11 @@ from telas.tela_base import TelaBase
 
 class TelaRecibo(TelaBase):
     def __init__(self, container, conn):
-        super().__init__(container, title="Recibo")
+        super().__init__(container, title="")
         self.conn = conn
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        # Listagem de comandas fechadas
         self.frame_listagem = ttk.LabelFrame(self, text="Comandas Fechadas", bootstyle="primary", padding=12)
         self.frame_listagem.grid(row=0, column=0, padx=30, pady=18, sticky="nsew")
         self.frame_listagem.grid_columnconfigure(0, weight=1)
@@ -22,37 +20,35 @@ class TelaRecibo(TelaBase):
         self.treeview_comandas.heading("Total", text="Total (R$)")
         self.treeview_comandas.heading("CPF", text="CPF Cliente")
         self.treeview_comandas.heading("Pagamento", text="Pagamento")
-        self.treeview_comandas.column("Numero", width=80)
-        self.treeview_comandas.column("Data", width=140)
-        self.treeview_comandas.column("Total", width=100)
-        self.treeview_comandas.column("CPF", width=120)
-        self.treeview_comandas.column("Pagamento", width=120)
-        self.treeview_comandas.pack(fill="both", expand=True)
+        self.treeview_comandas.column("Numero", width=80, anchor="center")
+        self.treeview_comandas.column("Data", width=140, anchor="center")
+        self.treeview_comandas.column("Total", width=100, anchor="center")
+        self.treeview_comandas.column("CPF", width=120, anchor="center")
+        self.treeview_comandas.column("Pagamento", width=120, anchor="center")
+        self.treeview_comandas.pack(fill="both", expand=True, padx=8, pady=8)
         self.treeview_comandas.bind("<Double-1>", self.abrir_recibo_comanda)
         self.carregar_comandas_fechadas()
-        self._agendar_atualizacao()
 
-        # Card centralizado para o recibo
-        self.card = ttk.LabelFrame(self, text="Recibo de Compra", bootstyle="primary", padding=24)
-        self.card.grid(row=1, column=0, padx=60, pady=20, sticky="nsew")
+        self.card = ttk.LabelFrame(self, text="Recibo de Compra", bootstyle="primary", padding=28)
+        self.card.grid(row=1, column=0, padx=60, pady=30, sticky="nsew")
         self.card.grid_columnconfigure(0, weight=1)
-        self.titulo_label = ttk.Label(self.card, text="Recibo de Compra", font=("Arial", 20, "bold"), bootstyle="primary")
+        self.titulo_label = ttk.Label(self.card, text="Recibo de Compra", font=("Arial", 22, "bold"), bootstyle="primary")
         self.titulo_label.grid(row=0, column=0, pady=(0, 18), sticky="ew")
-        self.data_label = ttk.Label(self.card, text="", font=("Arial", 12), bootstyle="secondary")
+        self.data_label = ttk.Label(self.card, text="", font=("Arial", 13), bootstyle="secondary")
         self.data_label.grid(row=1, column=0, pady=2, sticky="w")
-        self.pedido_label = ttk.Label(self.card, text="Pedido:", font=("Arial", 12, "bold"), bootstyle="info")
+        self.pedido_label = ttk.Label(self.card, text="Pedido:", font=("Arial", 13, "bold"), bootstyle="info")
         self.pedido_label.grid(row=2, column=0, pady=2, sticky="w")
-        self.cpf_label = ttk.Label(self.card, text="CPF Cliente:", font=("Arial", 12), bootstyle="info")
+        self.cpf_label = ttk.Label(self.card, text="CPF Cliente:", font=("Arial", 13), bootstyle="info")
         self.cpf_label.grid(row=3, column=0, pady=2, sticky="w")
-        self.produtos_label = ttk.Label(self.card, text="Produtos:", font=("Arial", 12, "bold"), bootstyle="primary")
+        self.produtos_label = ttk.Label(self.card, text="Produtos:", font=("Arial", 13, "bold"), bootstyle="primary")
         self.produtos_label.grid(row=4, column=0, pady=(12,2), sticky="w")
-        self.lista_produtos_label = ttk.Label(self.card, text="", font=("Consolas", 12), bootstyle="secondary", justify="left")
+        self.lista_produtos_label = ttk.Label(self.card, text="", font=("Consolas", 12), bootstyle="secondary", justify="left", anchor="w")
         self.lista_produtos_label.grid(row=5, column=0, padx=10, pady=2, sticky="ew")
         self.sep = ttk.Separator(self.card, orient="horizontal")
         self.sep.grid(row=6, column=0, sticky="ew", pady=10)
-        self.total_label = ttk.Label(self.card, text="Total:", font=("Arial", 15, "bold"), bootstyle="success")
+        self.total_label = ttk.Label(self.card, text="Total:", font=("Arial", 16, "bold"), bootstyle="success")
         self.total_label.grid(row=7, column=0, pady=2, sticky="w")
-        self.pagamento_label = ttk.Label(self.card, text="Pagamento:", font=("Arial", 12), bootstyle="info")
+        self.pagamento_label = ttk.Label(self.card, text="Pagamento:", font=("Arial", 13), bootstyle="info")
         self.pagamento_label.grid(row=8, column=0, pady=2, sticky="w")
         self.fechar_button = ttk.Button(self.card, text="Fechar Recibo", bootstyle="danger", command=self.esconder_recibo, width=22)
         self.fechar_button.grid(row=9, column=0, pady=18, sticky="ew")
@@ -60,13 +56,6 @@ class TelaRecibo(TelaBase):
         self.imprimir_button = ttk.Button(self.card, text="Imprimir Recibo", bootstyle="info", command=self.imprimir_recibo, width=22)
         self.imprimir_button.grid(row=10, column=0, pady=2, sticky="ew")
         self.imprimir_button.grid_remove()
-
-    def _agendar_atualizacao(self):
-        self.after(2000, self._atualizacao_periodica)
-
-    def _atualizacao_periodica(self):
-        self.carregar_comandas_fechadas()
-        self._agendar_atualizacao()
 
     def carregar_comandas_fechadas(self):
         self.treeview_comandas.delete(*self.treeview_comandas.get_children())
@@ -100,7 +89,6 @@ class TelaRecibo(TelaBase):
             self.total_label.config(bootstyle="danger")
         self.fechar_button.config(bootstyle="danger", width=22)
         self.fechar_button.focus_set()
-        # Salva dados do recibo para impressão
         self._recibo_para_imprimir = recibo_dados
 
     def esconder_recibo(self):
@@ -134,3 +122,8 @@ class TelaRecibo(TelaBase):
                 messagebox.showinfo("Sucesso", f"Recibo salvo em: {file_path}")
         except Exception as e:
             messagebox.showerror("Erro ao salvar recibo", str(e))
+
+    def on_show(self):
+        # Atualiza a listagem sempre que a aba for exibida
+        self.carregar_comandas_fechadas()
+        self.esconder_recibo()

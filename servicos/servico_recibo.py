@@ -1,5 +1,4 @@
 from datetime import datetime
-import sqlite3
 from servicos.database import conectar_banco_de_dados
 
 def gerar_recibo_dados(id_pedido, cpf_cliente, produtos, valor_total, forma_pagamento):

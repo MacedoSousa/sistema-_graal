@@ -1,6 +1,7 @@
 from servicos.database import conectar_banco_de_dados
 from datetime import datetime
 import sqlite3
+from servicos.utils import logar_erro
 
 def obter_comandas_abertas():
     conn = conectar_banco_de_dados()
@@ -147,6 +148,7 @@ def obter_comanda(numero_comanda):
 
         return comanda
     except Exception as e:
+        logar_erro(e)
         print(f"Erro ao obter comanda: {e}")
         return None
     finally:

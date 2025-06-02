@@ -9,7 +9,7 @@ from telas.tela_recibo import TelaRecibo
 from telas.tela_login import iniciar_tela_login
 from servicos.database import conectar_banco_de_dados, inicializar_banco
 from servicos.servico_funcionarios import inicializar_cargos
-import platform
+from telas.tela_funcionarios import TelaFuncionarios
 import os
 import sys
 
@@ -24,12 +24,12 @@ def validar_arquivo_sql(nome_arquivo):
 
 class SistemaVendas(ttk.Window):
     def __init__(self, usuario_logado):
-        super().__init__(themename="flatly")
+        super().__init__(themename="superhero")  # Tema escuro e moderno
         self.title("Graal")
         self.geometry("1320x720")
         self.resizable(True, True)
         self.usuario_logado = usuario_logado
-        self.configure(bg="#fffbe6")
+        self.configure(bg="#23272b")  # Fundo escuro
 
         self.conn = conectar_banco_de_dados()
         if self.conn is None:
@@ -37,12 +37,10 @@ class SistemaVendas(ttk.Window):
             self.destroy()
             return
 
-        # Sidebar
         self.sidebar = ttk.Frame(self, width=220, bootstyle="dark")
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
-        # Cabeçalho no topo
         self.header = ttk.Frame(self, height=56, bootstyle="light")
         self.header.pack(side="top", fill="x")
         self.header.pack_propagate(False)
@@ -57,11 +55,12 @@ class SistemaVendas(ttk.Window):
         self.main_frame.pack(side="right", fill="both", expand=True)
 
         icones = {
-            'inicial': '\u2302',
-            'produtos': '\u25A3',
-            'comandas': '\u270D',
-            'pagamento': '\u2708',
-            'recibo': '\u270D',
+            'inicial': '🏠',
+            'produtos': '📦',
+            'comandas': '📝',
+            'pagamento': '💳',
+            'recibo': '🧾',
+            'funcionarios': '👥',
         }
 
         self.botoes_menu = {}
@@ -73,11 +72,17 @@ class SistemaVendas(ttk.Window):
         self.telas['comandas'] = TelaComandas(self.main_frame, self.conn)
         self.telas['pagamento'] = TelaPagamento(self.main_frame, self.conn)
         self.telas['recibo'] = TelaRecibo(self.main_frame, self.conn)
+        self.telas['funcionarios'] = TelaFuncionarios(self.main_frame)
 
-        cargo = usuario_logado.get("cargo", "")
         menu_itens = [("Inicial", 'inicial')]
         if cargo == "Gerente":
-            menu_itens += [("Comandas", 'comandas'), ("Pagamento", 'pagamento'), ("Recibo", 'recibo'), ("Produtos", 'produtos')]
+            menu_itens += [
+                ("Comandas", 'comandas'),
+                ("Pagamento", 'pagamento'),
+                ("Recibo", 'recibo'),
+                ("Produtos", 'produtos'),
+                ("Funcionários", 'funcionarios')
+            ]
         elif cargo == "Vendedor":
             menu_itens += [("Comandas", 'comandas'), ("Pagamento", 'pagamento'), ("Recibo", 'recibo')]
         elif cargo == "Repositor":
@@ -90,10 +95,12 @@ class SistemaVendas(ttk.Window):
             btn = ttk.Button(self.sidebar, text=texto, bootstyle="primary", width=18,
                              command=lambda c=chave: self.mostrar_tela(c))
             btn.pack(pady=(18 if idx == 0 else 8, 0), padx=18, anchor="n")
+            btn.tooltip_text = nome  # Para tooltips futuros
             self.botoes_menu[chave] = btn
 
         self.mostrar_tela(menu_itens[0][1])
-        self.atualizar_dados_tela_inicial()
+        if cargo == "Gerente":
+            self.atualizar_dados_tela_inicial()
 
     def mostrar_tela(self, chave):
         if self.tela_atual:
@@ -149,7 +156,6 @@ class SistemaVendas(ttk.Window):
 
     def logout(self):
         self.destroy()
-        # Opcional: pode-se reiniciar o app chamando main() novamente, se desejado
 
     def __del__(self):
         if hasattr(self, 'conn') and self.conn:

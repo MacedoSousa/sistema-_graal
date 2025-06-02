@@ -1,5 +1,6 @@
 from servicos.database import conectar_banco_de_dados
-from datetime import datetime, timedelta
+from datetime import datetime
+from servicos.utils import logar_erro
 
 def obter_vendas_do_mes_atual():
     cnx = conectar_banco_de_dados()
@@ -21,6 +22,7 @@ def obter_vendas_do_mes_atual():
         total_vendas = cursor.fetchone()[0]
         return total_vendas if total_vendas else 0.0
     except Exception as e:
+        logar_erro(e)
         print(f"Erro ao obter vendas do mês atual: {e}")
         return 0.0
     finally:

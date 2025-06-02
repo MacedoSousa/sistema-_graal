@@ -1,5 +1,5 @@
-import tkinter as tk
 from tkinter import ttk
+from servicos.servico_funcionarios import listar_funcionarios
 
 class TelaInicial(ttk.Frame):
     def __init__(self, container):
@@ -25,15 +25,10 @@ class TelaInicial(ttk.Frame):
         self.label_vendas_mes_atual = ttk.Label(self.card_vendas, text="Vendas no Mês Atual: R$ 0.00", font=("Arial", 14, "bold"), bootstyle="success")
         self.label_vendas_mes_atual.pack(pady=4)
 
-        self._agendar_atualizacao()
-
-    def _agendar_atualizacao(self):
-        self.after(2000, self._atualizacao_periodica)
-
-    def _atualizacao_periodica(self):
-        if hasattr(self.master, 'atualizar_dados_tela_inicial'):
-            self.master.atualizar_dados_tela_inicial()
-        self._agendar_atualizacao()
+        self.card_funcionarios = ttk.LabelFrame(self.cards_resumo, text="Funcionários", bootstyle="secondary", padding=16)
+        self.card_funcionarios.pack(side="left", expand=True, fill="both", padx=8)
+        self.label_total_funcionarios = ttk.Label(self.card_funcionarios, text="Total de Funcionários: 0", font=("Arial", 14, "bold"), bootstyle="secondary")
+        self.label_total_funcionarios.pack(pady=4)
 
     def atualizar_resumo_produtos(self, total_produtos, produtos_baixo_estoque):
         self.label_total_produtos.config(text=f"Total de Produtos: {total_produtos}")
@@ -45,3 +40,7 @@ class TelaInicial(ttk.Frame):
 
     def atualizar_resumo_vendas(self, vendas_mes_atual):
         self.label_vendas_mes_atual.config(text=f"Vendas no Mês Atual: R$ {vendas_mes_atual:.2f}")
+
+    def atualizar_resumo_funcionarios(self):
+        total_funcionarios = len(listar_funcionarios())
+        self.label_total_funcionarios.config(text=f"Total de Funcionários: {total_funcionarios}")

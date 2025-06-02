@@ -4,7 +4,9 @@ from PIL import Image, ImageTk
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import sqlite3
+import os
 from servicos.servico_funcionarios import autenticar, inicializar_cargos, cadastrar_funcionario
+from servicos.utils import campo_obrigatorio, logar_erro
 
 DB_PATH = 'graal.db'
 
@@ -31,10 +33,8 @@ def mostrar_tela_cadastro(root):
     frame.place(relx=0.5, rely=0.5, anchor="center")
     frame.config(borderwidth=2, relief="ridge")
 
-
     ttk.Label(frame, text="Cadastro do Primeiro Usuário", font=("Arial", 18, "bold"), bootstyle="primary")\
         .grid(row=0, column=0, columnspan=2, pady=(0, 25))
-
 
     labels = ["Nome", "Usuário", "Senha", "Cargo"]
     for i, text in enumerate(labels[:-1], start=1):
@@ -49,7 +49,6 @@ def mostrar_tela_cadastro(root):
     entry_usuario.grid(row=2, column=1, pady=10, padx=8)
     entry_senha.grid(row=3, column=1, pady=10, padx=8)
 
-
     ttk.Label(frame, text='Cargo:', font=("Arial", 13), bootstyle="primary")\
         .grid(row=4, column=0, sticky="e", pady=10, padx=8)
     ttk.Label(frame, text='Gerente', font=("Arial", 13), bootstyle="info")\
@@ -60,7 +59,7 @@ def mostrar_tela_cadastro(root):
         usuario = entry_usuario.get().strip()
         senha = entry_senha.get().strip()
 
-        if not nome or not usuario or not senha:
+        if not campo_obrigatorio(nome) or not campo_obrigatorio(usuario) or not campo_obrigatorio(senha):
             messagebox.showerror("Erro", "Preencha todos os campos.")
             return
 
@@ -69,6 +68,7 @@ def mostrar_tela_cadastro(root):
             messagebox.showinfo("Sucesso", "Administrador cadastrado com sucesso!")
             cadastro_win.destroy()
         except Exception as e:
+            logar_erro(e)
             messagebox.showerror("Erro", f"Erro ao cadastrar: {e}")
 
     ttk.Button(frame, text='Cadastrar', bootstyle="success", command=cadastrar, width=20)\
@@ -91,9 +91,19 @@ def iniciar_tela_login():
     login_win.title('Login - Sistema GRAAL')
     login_win.geometry('900x600')
     login_win.resizable(False, False)
-    login_win.configure(bg="#fffbe6")
-    login_win.grab_set()
-    login_win.focus_force()
+    login_win.configure(bg="#181c1f")  # Fundo escuro
+    # Adiciona imagem do logo centralizada e visual moderno
+    img_path = os.path.join(os.path.dirname(__file__), '..', 'img', 'graal.jpg')
+    img = Image.open(img_path)
+    try:
+        resample = Image.Resampling.LANCZOS
+    except AttributeError:
+        resample = Image.LANCZOS
+    img = img.resize((180, 180), resample)
+    logo_img = ImageTk.PhotoImage(img)
+    logo_label = tk.Label(login_win, image=logo_img, bg="#181c1f")
+    logo_label.image = logo_img
+    logo_label.place(relx=0.5, rely=0.18, anchor="center")
 
     def tentar_login():
         usuario = entry_usuario.get().strip()
@@ -105,24 +115,24 @@ def iniciar_tela_login():
         else:
             messagebox.showerror('Erro', 'Usuário ou senha inválidos')
 
-    frame = ttk.Frame(login_win, padding=35, bootstyle="light")
+    frame = ttk.Frame(login_win, padding=35, bootstyle="dark")
     frame.place(relx=0.5, rely=0.5, anchor="center")
     frame.config(borderwidth=2, relief="ridge")
 
-    ttk.Label(frame, text="GRAAL", font=("Arial", 22, "bold"), bootstyle="primary")\
+    ttk.Label(frame, text="GRAAL", font=("Arial", 28, "bold"), bootstyle="primary", background="#181c1f", foreground="#fff")\
         .grid(row=0, column=0, columnspan=2, pady=(0, 25))
 
-    ttk.Label(frame, text='Usuário:', font=("Arial", 13), bootstyle="primary")\
+    ttk.Label(frame, text='Usuário:', font=("Arial", 14), bootstyle="primary", background="#181c1f", foreground="#fff")\
         .grid(row=1, column=0, sticky="e", pady=10, padx=8)
-    entry_usuario = ttk.Entry(frame, font=("Arial", 13), width=22)
+    entry_usuario = ttk.Entry(frame, font=("Arial", 14), width=22)
     entry_usuario.grid(row=1, column=1, pady=10, padx=8)
 
-    ttk.Label(frame, text='Senha:', font=("Arial", 13), bootstyle="primary")\
+    ttk.Label(frame, text='Senha:', font=("Arial", 14), bootstyle="primary", background="#181c1f", foreground="#fff")\
         .grid(row=2, column=0, sticky="e", pady=10, padx=8)
-    entry_senha = ttk.Entry(frame, show='*', font=("Arial", 13), width=22)
+    entry_senha = ttk.Entry(frame, show='*', font=("Arial", 14), width=22)
     entry_senha.grid(row=2, column=1, pady=10, padx=8)
 
-    ttk.Button(frame, text='Entrar', bootstyle="warning", command=tentar_login, width=20)\
+    ttk.Button(frame, text='Entrar', bootstyle="success", command=tentar_login, width=20)\
         .grid(row=3, column=0, columnspan=2, pady=28)
 
     entry_usuario.focus()

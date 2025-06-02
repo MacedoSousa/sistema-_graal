@@ -8,6 +8,7 @@ from servicos.servico_produtos import (
     excluir_produto,
     obter_proximo_codigo
 )
+from servicos.utils import formatar_preco_brasileiro
 
 class TelaProdutos(TelaBase):
     def __init__(self, container, conn=None):
@@ -68,12 +69,10 @@ class TelaProdutos(TelaBase):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
 
-
         self.listagem_frame = ttk.LabelFrame(self, text="Produtos Cadastrados", bootstyle="primary")
         self.treeview = ttk.Treeview(self.listagem_frame,
                                         columns=("Codigo", "Nome", "Empresa", "Peso", "Preco", "Validade", "Quantidade"),
                                         show="headings")
-
         
         self.treeview.heading("Codigo", text="Codigo")
         self.treeview.heading("Nome", text="Nome")
@@ -82,7 +81,6 @@ class TelaProdutos(TelaBase):
         self.treeview.heading("Preco", text="Preço (R$)")
         self.treeview.heading("Validade", text="Validade")
         self.treeview.heading("Quantidade", text="Quantidade")
-
         
         self.treeview.column("Codigo", width=80)
         self.treeview.column("Nome", width=150)
@@ -106,14 +104,6 @@ class TelaProdutos(TelaBase):
         self.acoes_frame.grid(row=3, column=0, columnspan=2, pady=5, padx=10, sticky="w")
 
         self.carregar_produtos()
-        self._agendar_atualizacao()
-
-    def _agendar_atualizacao(self):
-        self.after(2000, self._atualizacao_periodica)
-
-    def _atualizacao_periodica(self):
-        self.carregar_produtos()
-        self._agendar_atualizacao()
 
     def carregar_produtos(self):
         self.produtos = obter_todos_os_produtos_dict()
@@ -123,12 +113,17 @@ class TelaProdutos(TelaBase):
         for item in self.treeview.get_children():
             self.treeview.delete(item)
         for produto in self.produtos:
+            # Corrige exibição de empresa, peso e preço
+            empresa = produto.get("fornecedor", "")
+            peso = produto.get("peso_kg", "")
+            preco = produto.get("preco", 0.0)
+            preco_formatado = formatar_preco_brasileiro(preco)
             self.treeview.insert("", "end", values=(
                 produto.get("codigo_de_barras", produto.get("id_produto", "")),
                 produto["nome"],
-                produto.get("fornecedor", ""),
-                f"{produto.get('peso_kg', '')}",
-                produto["preco"],
+                empresa,
+                peso,
+                preco_formatado,
                 produto.get("data_validade", ""),
                 produto["estoque"]
             ))
@@ -141,7 +136,11 @@ class TelaProdutos(TelaBase):
             if produto_selecionado:
                 codigo, nome, empresa, peso_unidade, preco, validade, quantidade = produto_selecionado
                 try:
-                    peso, unidade = peso_unidade.split()
+                    # Corrige split do peso para evitar erro se não houver unidade
+                    if ' ' in peso_unidade:
+                        peso, unidade = peso_unidade.split()
+                    else:
+                        peso, unidade = peso_unidade, "Kg"
                     self.nome_entry.delete(0, tk.END)
                     self.nome_entry.insert(0, nome)
                     self.empresa_entry.delete(0, tk.END)
@@ -150,7 +149,9 @@ class TelaProdutos(TelaBase):
                     self.peso_entry.insert(0, peso)
                     self.peso_unidades.set(unidade)
                     self.preco_entry.delete(0, tk.END)
-                    self.preco_entry.insert(0, preco)
+                    # Remove pontos e vírgulas para converter para float
+                    preco_float = preco.replace(".", "").replace(",", ".")
+                    self.preco_entry.insert(0, preco_float)
                     self.validade_entry.delete(0, tk.END)
                     self.validade_entry.insert(0, validade)
                     self.quantidade_entry.delete(0, tk.END)
@@ -167,7 +168,7 @@ class TelaProdutos(TelaBase):
         empresa = self.empresa_entry.get().strip()
         peso = self.peso_entry.get().strip()
         unidade_peso = self.peso_unidades.get()
-        preco_str = self.preco_entry.get().strip()
+        preco_str = self.preco_entry.get().strip().replace(".", "").replace(",", ".")  # Aceita vírgula ou ponto
         validade = self.validade_entry.get().strip()
         quantidade_str = self.quantidade_entry.get().strip()
 
@@ -205,7 +206,7 @@ class TelaProdutos(TelaBase):
             "nome": nome,
             "fornecedor": empresa,
             "peso_kg": f"{peso} {unidade_peso}",
-            "preco": float(preco_str),
+            "preco": preco,
             "data_validade": validade,
             "estoque": int(quantidade_str)
         }
@@ -262,3 +263,8 @@ class TelaProdutos(TelaBase):
         self.quantidade_entry.delete(0, tk.END)
         self.item_selecionado = None
         self.salvar_button.config(text="Salvar Produto")
+
+    def on_show(self):
+        # Atualiza a listagem sempre que a aba for exibida
+        self.carregar_produtos()
+        self.limpar_formulario()

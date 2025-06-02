@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 from servicos.database import conectar_banco_de_dados
+from servicos.utils import logar_erro
 
 def registrar_pagamento(numero_comanda, cpf_cliente, valor_total, forma_pagamento):
     cnx = conectar_banco_de_dados()
@@ -34,6 +35,7 @@ def registrar_pagamento(numero_comanda, cpf_cliente, valor_total, forma_pagament
         return True
     except Exception as e:
         cnx.rollback()
+        logar_erro(e)
         print(f"Erro ao registrar pagamento: {e}")
         return False
     finally:

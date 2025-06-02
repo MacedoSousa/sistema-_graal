@@ -1,4 +1,5 @@
 from servicos.database import conectar_banco_de_dados
+from servicos.utils import logar_erro
 
 def obter_total_de_produtos():
     conexao = conectar_banco_de_dados()
@@ -9,6 +10,7 @@ def obter_total_de_produtos():
         cursor.execute("SELECT COUNT(*) FROM produto")
         return cursor.fetchone()[0]
     except Exception as e:
+        logar_erro(e)
         print(f"Erro ao obter total de produtos: {e}")
         return 0
     finally:
@@ -23,6 +25,7 @@ def obter_produtos_em_baixo_estoque():
         cursor.execute("SELECT nome, estoque FROM produto WHERE estoque < 5")
         return [dict(row) for row in cursor.fetchall()]
     except Exception as e:
+        logar_erro(e)
         print(f"Erro ao obter produtos em baixo estoque: {e}")
         return []
     finally:

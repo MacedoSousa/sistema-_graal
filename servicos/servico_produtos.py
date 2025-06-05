@@ -1,5 +1,6 @@
 from servicos.database import conectar_banco_de_dados
 from servicos.utils import logar_erro
+import sqlite3
 
 def obter_total_de_produtos():
     conexao = conectar_banco_de_dados()
@@ -65,8 +66,8 @@ def atualizar_produto(conn, produto):
         UPDATE produto
         SET nome = ?, fornecedor = ?, peso_kg = ?, preco = ?, data_validade = ?, estoque = ?, codigo_de_barras = ?
         WHERE id_produto = ?
-    """, (produto["nome"], produto['codigo_de_barras'], produto["fornecedor"], produto["peso_kg"], produto["preco"],
-          produto["data_validade"], produto["estoque"], produto["id_produto"]))
+    """, (produto["nome"], produto["fornecedor"], produto["peso_kg"], produto["preco"],
+          produto["data_validade"], produto["estoque"], produto['codigo_de_barras'], produto["id_produto"]))
 
 
 def excluir_produto(produto_id):
@@ -117,12 +118,26 @@ def obter_todos_os_produtos_dict():
     if conexao is None:
         return []
     try:
+        conexao.row_factory = sqlite3.Row
         cursor = conexao.cursor()
         cursor.execute("""
             SELECT id_produto, codigo_de_barras, nome, fornecedor, peso_kg, preco, data_validade, estoque 
             FROM produto
         """)
-        return [dict(row) for row in cursor.fetchall()]
+        produtos = []
+        for row in cursor.fetchall():
+            produtos.append({
+                'id': row['id_produto'],
+                'codigo_barras': row['codigo_de_barras'],
+                'nome': row['nome'],
+                'empresa': row['fornecedor'],
+                'peso': row['peso_kg'],
+                'unidade': '',  # Preencher se houver campo na tabela
+                'preco': row['preco'],
+                'validade': row['data_validade'],
+                'quantidade': row['estoque']
+            })
+        return produtos
     except Exception as e:
         print(f"Erro ao obter produtos como dicionário: {e}")
         return []
@@ -175,3 +190,11 @@ def atualizar_estoque(id_produto, quantidade_vendida):
         return False
     finally:
         conexao.close()
+
+def listar_produtos():
+    """Compatibilidade: retorna todos os produtos como lista de dicionários."""
+    return obter_todos_os_produtos_dict()
+
+def salvar_produto(produto):
+    """Compatibilidade: salva um novo produto."""
+    return salvar_novo_produto(produto)

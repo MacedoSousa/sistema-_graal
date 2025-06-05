@@ -54,3 +54,24 @@ def inicializar_banco():
         criar_banco()
     else:
         print("Banco de dados já está configurado e válido.")
+
+def get_connection():
+    return sqlite3.connect(DB_PATH)
+
+def fetchone(query, params=None):
+    with get_connection() as conn:
+        cur = conn.cursor()
+        cur.execute(query, params or ())
+        return cur.fetchone()
+
+def fetchall(query, params=None):
+    with get_connection() as conn:
+        cur = conn.cursor()
+        cur.execute(query, params or ())
+        return cur.fetchall()
+
+def execute(query, params=None):
+    with get_connection() as conn:
+        cur = conn.cursor()
+        cur.execute(query, params or ())
+        conn.commit()

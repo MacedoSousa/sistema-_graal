@@ -75,3 +75,9 @@ def obter_dados_recibo(id_pedido):
         }
     finally:
         conn.close()
+
+def listar_recibos():
+    """Retorna lista de recibos para uso no front unificado."""
+    return [
+        {'id': r['id_pedido'], 'valor': r['valor_total']} for r in listar_comandas_fechadas()
+    ]

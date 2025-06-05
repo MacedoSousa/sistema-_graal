@@ -119,7 +119,8 @@ def obter_comanda(numero_comanda):
                 p.status,
                 pr.nome AS produto_nome,
                 ip.quantidade,
-                ip.preco_unitario
+                ip.preco_unitario,
+                ip.id_produto
             FROM pedido p
             JOIN item_pedido ip ON p.id_pedido = ip.id_pedido
             JOIN produto pr ON ip.id_produto = pr.id_produto
@@ -141,6 +142,7 @@ def obter_comanda(numero_comanda):
 
         for row in resultados:
             comanda["itens"].append({
+                "id_produto": row["id_produto"],
                 "produto_nome": row["produto_nome"],
                 "quantidade": row["quantidade"],
                 "preco_unitario": row["preco_unitario"]
@@ -189,3 +191,8 @@ def fechar_comanda(numero_comanda):
         if conn:
             cursor.close()
             conn.close()
+
+def listar_comandas():
+    """Retorna lista de comandas abertas para uso no front unificado."""
+    comandas_dict = obter_comandas_abertas()
+    return [{'id': k, 'status': 'aberta'} for k in comandas_dict.keys()]

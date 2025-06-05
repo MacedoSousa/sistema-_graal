@@ -29,3 +29,6 @@ def obter_vendas_do_mes_atual():
         if cnx:
             cursor.close()
             cnx.close()
+
+def obter_vendas_mes_atual():
+    return obter_vendas_do_mes_atual()

@@ -53,14 +53,31 @@ class TelaPagamento(TelaBase):
                                                state="readonly")
         self.pagamento_combobox.grid(row=1, column=1, padx=5, pady=8, sticky="ew")
         self.pagamento_combobox.current(0)
+        self.pagamento_combobox.bind("<<ComboboxSelected>>", self._on_pagamento_change)
 
         self.label_total = ttk.Label(self.frame_pagamento, text="Total: R$ 0.00", font=("Arial", 16, "bold"), bootstyle="success")
         self.label_total.grid(row=2, column=0, columnspan=2, pady=10, sticky="e")
 
+        self.label_valor_recebido = ttk.Label(self.frame_pagamento, text="Valor Recebido:", font=("Arial", 12, "bold"), bootstyle="primary")
+        self.entry_valor_recebido = ttk.Entry(self.frame_pagamento, font=("Arial", 12))
+        self.label_valor_recebido.grid(row=3, column=0, padx=5, pady=8, sticky="w")
+        self.entry_valor_recebido.grid(row=3, column=1, padx=5, pady=8, sticky="ew")
+        self.label_valor_recebido.grid_remove()
+        self.entry_valor_recebido.grid_remove()
+
         self.finalizar_button = ttk.Button(self.frame_pagamento, text="Finalizar Pagamento", bootstyle="warning",
                                            command=self.finalizar_pagamento, width=22)
-        self.finalizar_button.grid(row=3, column=0, columnspan=2, pady=18)
+        self.finalizar_button.grid(row=4, column=0, columnspan=2, pady=18)
         self.finalizar_button.config(state="disabled")
+
+    def _on_pagamento_change(self, event=None):
+        forma = self.pagamento_combobox.get()
+        if forma == "Dinheiro":
+            self.label_valor_recebido.grid(row=3, column=0, padx=5, pady=8, sticky="w")
+            self.entry_valor_recebido.grid(row=3, column=1, padx=5, pady=8, sticky="ew")
+        else:
+            self.label_valor_recebido.grid_remove()
+            self.entry_valor_recebido.grid_remove()
 
     def buscar_comanda(self):
         numero = self.comanda_entry.get().strip()
@@ -115,6 +132,22 @@ class TelaPagamento(TelaBase):
             messagebox.showerror("Erro", "Selecione a forma de pagamento.")
             return
 
+        valor_recebido = None
+        if forma_pagamento == "Dinheiro":
+            valor_recebido_str = self.entry_valor_recebido.get().replace(",", ".").strip()
+            try:
+                valor_recebido = float(valor_recebido_str)
+            except Exception:
+                messagebox.showerror("Erro", "Informe um valor recebido válido.")
+                return
+            if valor_recebido < self.valor_total:
+                faltando = self.valor_total - valor_recebido
+                messagebox.showwarning("Pagamento insuficiente", f"Faltam R$ {faltando:.2f} para completar o pagamento.")
+                return
+            elif valor_recebido > self.valor_total:
+                troco = valor_recebido - self.valor_total
+                messagebox.showinfo("Troco", f"Troco para o cliente: R$ {troco:.2f}")
+
         if not messagebox.askyesno("Confirmar", "Deseja finalizar o pagamento?"):
             return
 
@@ -122,7 +155,6 @@ class TelaPagamento(TelaBase):
             id_pedido = self.numero_comanda
             registrar_pagamento(id_pedido, cpf_cliente, self.valor_total, forma_pagamento)
             fechar_comanda(id_pedido)
-
             if hasattr(self.master, 'tela_recibo'):
                 produtos = [
                     {
@@ -140,10 +172,23 @@ class TelaPagamento(TelaBase):
             self.comanda_entry.delete(0, tk.END)
             self.cpf_entry.delete(0, tk.END)
             self.pagamento_combobox.current(0)
+            self.entry_valor_recebido.delete(0, tk.END)
+            self._on_pagamento_change()
 
-            if hasattr(self.master, 'telas') and 'comandas' in self.master.telas:
-                self.master.telas['comandas'].atualizar_listagem_comandas()
-
+            if hasattr(self.master, 'atualizar_comandas_e_recibo'):
+                self.master.atualizar_comandas_e_recibo()
         except Exception as e:
             logar_erro(e)
             messagebox.showerror("Erro", f"Erro ao finalizar pagamento: {e}")
+
+    def on_show(self):
+        if hasattr(self.master, 'atualizar_comandas_e_recibo'):
+            self.master.atualizar_comandas_e_recibo()
+        self.limpar_itens()
+        self.comanda_entry.delete(0, tk.END)
+        self.cpf_entry.delete(0, tk.END)
+        self.pagamento_combobox.current(0)
+        if hasattr(self, 'entry_valor_recebido'):
+            self.entry_valor_recebido.delete(0, tk.END)
+        if hasattr(self, '_on_pagamento_change'):
+            self._on_pagamento_change()

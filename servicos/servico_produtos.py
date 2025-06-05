@@ -118,7 +118,10 @@ def obter_todos_os_produtos_dict():
         return []
     try:
         cursor = conexao.cursor()
-        cursor.execute("SELECT id_produto, nome, preco, estoque FROM produto")
+        cursor.execute("""
+            SELECT id_produto, codigo_de_barras, nome, fornecedor, peso_kg, preco, data_validade, estoque 
+            FROM produto
+        """)
         return [dict(row) for row in cursor.fetchall()]
     except Exception as e:
         print(f"Erro ao obter produtos como dicionário: {e}")

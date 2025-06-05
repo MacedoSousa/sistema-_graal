@@ -24,8 +24,9 @@ def validar_arquivo_sql(nome_arquivo):
 
 class SistemaVendas(ttk.Window):
     def __init__(self, usuario_logado):
-        super().__init__(themename="superhero")  # Tema escuro e moderno
-        # Definir ícone da janela após o init
+        super().__init__(themename="superhero") 
+        self.protocol("WM_DELETE_WINDOW", self.sair)
+
         try:
             import os
             base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -38,7 +39,7 @@ class SistemaVendas(ttk.Window):
         self.geometry("1320x720")
         self.resizable(True, True)
         self.usuario_logado = usuario_logado
-        self.configure(bg="#23272b")  # Fundo escuro
+        self.configure(bg="#23272b") 
 
         self.conn = conectar_banco_de_dados()
         if self.conn is None:
@@ -59,6 +60,8 @@ class SistemaVendas(ttk.Window):
         self.label_usuario.pack(side="left", padx=24)
         self.btn_logout = ttk.Button(self.header, text="Logout", bootstyle="danger", width=10, command=self.logout)
         self.btn_logout.pack(side="right", padx=24)
+        self.btn_sair = ttk.Button(self.header, text="Sair", bootstyle="secondary", width=10, command=self.sair)
+        self.btn_sair.pack(side="right", padx=8)
 
         self.main_frame = ttk.Frame(self, bootstyle="light")
         self.main_frame.pack(side="right", fill="both", expand=True)
@@ -163,8 +166,57 @@ class SistemaVendas(ttk.Window):
         self.telas['inicial'].atualizar_resumo_produtos(total_produtos, produtos_baixo_estoque)
         self.telas['inicial'].atualizar_resumo_vendas(vendas_mes_atual)
 
+    def atualizar_todas_telas(self):
+        """Atualiza todas as telas críticas após alterações relevantes."""
+        if 'comandas' in self.telas:
+            self.telas['comandas'].atualizar_listagem_comandas()
+        if 'recibo' in self.telas:
+            self.telas['recibo'].carregar_comandas_fechadas()
+        if 'produtos' in self.telas:
+            self.telas['produtos'].carregar_produtos()
+        if 'funcionarios' in self.telas:
+            self.telas['funcionarios'].atualizar_listagem_funcionarios()
+        if 'inicial' in self.telas:
+            self.atualizar_dados_tela_inicial()
+
+    def atualizar_comandas_e_recibo(self):
+        if 'comandas' in self.telas:
+            self.telas['comandas'].atualizar_listagem_comandas()
+        if 'recibo' in self.telas:
+            self.telas['recibo'].carregar_comandas_fechadas()
+        if 'inicial' in self.telas:
+            self.atualizar_dados_tela_inicial()
+
+    def atualizar_produtos_e_inicial(self):
+        if 'produtos' in self.telas:
+            self.telas['produtos'].carregar_produtos()
+        if 'inicial' in self.telas:
+            self.atualizar_dados_tela_inicial()
+
+    def atualizar_funcionarios_e_inicial(self):
+        if 'funcionarios' in self.telas:
+            self.telas['funcionarios'].atualizar_listagem_funcionarios()
+        if 'inicial' in self.telas:
+            self.atualizar_dados_tela_inicial()
+
     def logout(self):
+        # Volta para tela de login sem encerrar o processo
+        if hasattr(self, 'conn') and self.conn:
+            self.conn.close()
         self.destroy()
+        from telas.tela_login import iniciar_tela_login
+        user = iniciar_tela_login()
+        if user:
+            app = SistemaVendas(user)
+            app.mainloop()
+
+    def sair(self):
+        # Encerra o sistema completamente
+        if hasattr(self, 'conn') and self.conn:
+            self.conn.close()
+        self.destroy()
+        import os
+        os._exit(0)
 
     def __del__(self):
         if hasattr(self, 'conn') and self.conn:

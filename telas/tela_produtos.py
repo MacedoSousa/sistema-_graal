@@ -42,7 +42,6 @@ class TelaProdutos(TelaBase):
         self.salvar_button = ttk.Button(self.form_frame, text="Salvar Produto", bootstyle="warning", command=self.salvar_produto)
         self.limpar_button = ttk.Button(self.form_frame, text="Limpar", bootstyle="secondary", command=self.limpar_formulario)
 
-        
         self.nome_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
         self.nome_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
@@ -113,7 +112,6 @@ class TelaProdutos(TelaBase):
         for item in self.treeview.get_children():
             self.treeview.delete(item)
         for produto in self.produtos:
-            # Corrige exibição de empresa, peso e preço
             empresa = produto.get("fornecedor", "")
             peso = produto.get("peso_kg", "")
             preco = produto.get("preco", 0.0)
@@ -128,38 +126,39 @@ class TelaProdutos(TelaBase):
                 produto["estoque"]
             ))
 
-    def selecionar_produto_para_editar(self, event):
-        selecionados = self.treeview.selection()
-        if selecionados:
+    def selecionar_produto_para_editar(self, event=None, item_id=None):
+        if item_id is None:
+            selecionados = self.treeview.selection()
+            if not selecionados:
+                messagebox.showerror("Erro", "Selecione um produto para editar.")
+                return
             item_id = selecionados[0]
-            produto_selecionado = self.treeview.item(item_id, 'values')
-            if produto_selecionado:
-                codigo, nome, empresa, peso_unidade, preco, validade, quantidade = produto_selecionado
-                try:
-                    # Corrige split do peso para evitar erro se não houver unidade
-                    if ' ' in peso_unidade:
-                        peso, unidade = peso_unidade.split()
-                    else:
-                        peso, unidade = peso_unidade, "Kg"
-                    self.nome_entry.delete(0, tk.END)
-                    self.nome_entry.insert(0, nome)
-                    self.empresa_entry.delete(0, tk.END)
-                    self.empresa_entry.insert(0, empresa)
-                    self.peso_entry.delete(0, tk.END)
-                    self.peso_entry.insert(0, peso)
-                    self.peso_unidades.set(unidade)
-                    self.preco_entry.delete(0, tk.END)
-                    # Remove pontos e vírgulas para converter para float
-                    preco_float = preco.replace(".", "").replace(",", ".")
-                    self.preco_entry.insert(0, preco_float)
-                    self.validade_entry.delete(0, tk.END)
-                    self.validade_entry.insert(0, validade)
-                    self.quantidade_entry.delete(0, tk.END)
-                    self.quantidade_entry.insert(0, quantidade)
-                    self.item_selecionado = item_id
-                except ValueError as e:
-                    messagebox.showerror("Erro ao Editar",
-                                         f"Formato de peso inválido para o produto: '{peso_unidade}'. Erro: {e}")
+        produto_selecionado = self.treeview.item(item_id, 'values')
+        if produto_selecionado:
+            codigo, nome, empresa, peso_unidade, preco, validade, quantidade = produto_selecionado
+            try:
+                if ' ' in peso_unidade:
+                    peso, unidade = peso_unidade.split()
+                else:
+                    peso, unidade = peso_unidade, "Kg"
+                self.nome_entry.delete(0, tk.END)
+                self.nome_entry.insert(0, nome)
+                self.empresa_entry.delete(0, tk.END)
+                self.empresa_entry.insert(0, empresa)
+                self.peso_entry.delete(0, tk.END)
+                self.peso_entry.insert(0, peso)
+                self.peso_unidades.set(unidade)
+                self.preco_entry.delete(0, tk.END)
+                preco_float = preco.replace(".", "").replace(",", ".")
+                self.preco_entry.insert(0, preco_float)
+                self.validade_entry.delete(0, tk.END)
+                self.validade_entry.insert(0, validade)
+                self.quantidade_entry.delete(0, tk.END)
+                self.quantidade_entry.insert(0, quantidade)
+                self.item_selecionado = item_id
+            except ValueError as e:
+                messagebox.showerror("Erro ao Editar",
+                                     f"Formato de peso inválido para o produto: '{peso_unidade}'. Erro: {e}")
         else:
             messagebox.showerror("Erro", "Selecione um produto para editar.")
 
@@ -168,7 +167,7 @@ class TelaProdutos(TelaBase):
         empresa = self.empresa_entry.get().strip()
         peso = self.peso_entry.get().strip()
         unidade_peso = self.peso_unidades.get()
-        preco_str = self.preco_entry.get().strip().replace(".", "").replace(",", ".")  # Aceita vírgula ou ponto
+        preco_str = self.preco_entry.get().strip().replace(".", "").replace(",", ".")
         validade = self.validade_entry.get().strip()
         quantidade_str = self.quantidade_entry.get().strip()
 
@@ -196,10 +195,12 @@ class TelaProdutos(TelaBase):
             messagebox.showerror("Erro", "A quantidade deve ser um número inteiro válido e não negativo.")
             return
 
-        for produto in self.produtos:
-            if produto["nome"].lower() == nome.lower() and (not self.item_selecionado or produto["id_produto"] != self.treeview.item(self.item_selecionado, 'values')[0]):
-                messagebox.showerror("Erro", "Já existe um produto com este nome.")
-                return
+        if not self.item_selecionado:
+            for produto in self.produtos:
+                if produto["nome"].lower() == nome.lower():
+                    messagebox.showerror("Erro", "Já existe um produto com este nome.")
+                    return
+
         produto_atualizado = {
             "id_produto": self.treeview.item(self.item_selecionado, 'values')[0] if self.item_selecionado else obter_proximo_codigo(None),
             "codigo_de_barras": self.codigo_produto_atual,
@@ -212,31 +213,33 @@ class TelaProdutos(TelaBase):
         }
         try:
             if self.item_selecionado:
-                atualizar_produto(None, produto_atualizado)
-                for i, produto in enumerate(self.produtos):
-                    if str(produto.get("id_produto", produto.get("codigo_de_barras"))) == str(produto_atualizado["id_produto"]):
-                        self.produtos[i] = produto_atualizado
-                        break
-                self.atualizar_listagem()
+                from servicos.database import conectar_banco_de_dados
+                conn = conectar_banco_de_dados()
+                atualizar_produto(conn, produto_atualizado)
+                conn.commit()
+                conn.close()
+                self.carregar_produtos() 
                 self.item_selecionado = None
                 self.salvar_button.config(text="Salvar Produto")
                 messagebox.showinfo("Sucesso", "Produto atualizado com sucesso!")
             else:
                 salvar_novo_produto(produto_atualizado)
-                self.produtos.append(produto_atualizado)
-                self.atualizar_listagem()
+                self.carregar_produtos()
                 self.codigo_produto_atual = obter_proximo_codigo(None)
                 messagebox.showinfo("Sucesso", "Produto cadastrado com sucesso!")
             self.limpar_formulario()
+            if hasattr(self.master, 'atualizar_produtos_e_inicial'):
+                self.master.atualizar_produtos_e_inicial()
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao salvar produto: {e}")
 
     def editar_produto(self):
-        if not self.treeview.selection():
+        selecionados = self.treeview.selection()
+        if not selecionados:
             messagebox.showerror("Erro", "Selecione um produto para editar.")
             return
         self.salvar_button.config(text="Atualizar Produto")
-        self.selecionar_produto_para_editar("<Double-1>")
+        self.selecionar_produto_para_editar(item_id=selecionados[0])
 
     def excluir_produto(self):
         item_selecionado = self.treeview.selection()
@@ -247,9 +250,10 @@ class TelaProdutos(TelaBase):
         if messagebox.askyesno("Confirmação", f"Deseja excluir o produto com código {codigo_excluir}?"):
             try:
                 excluir_produto(codigo_excluir)
-                self.produtos = [p for p in self.produtos if str(p.get("codigo_de_barras", p.get("id_produto"))) != str(codigo_excluir)]
-                self.atualizar_listagem()
+                self.carregar_produtos()
                 messagebox.showinfo("Sucesso", "Produto excluído com sucesso!")
+                if hasattr(self.master, 'atualizar_produtos_e_inicial'):
+                    self.master.atualizar_produtos_e_inicial()
             except Exception as e:
                 messagebox.showerror("Erro", f"Erro ao excluir produto: {e}")
 
@@ -265,6 +269,7 @@ class TelaProdutos(TelaBase):
         self.salvar_button.config(text="Salvar Produto")
 
     def on_show(self):
-        # Atualiza a listagem sempre que a aba for exibida
         self.carregar_produtos()
         self.limpar_formulario()
+        if hasattr(self.master, 'atualizar_produtos_e_inicial'):
+            self.master.atualizar_produtos_e_inicial()

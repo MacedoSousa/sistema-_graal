@@ -19,11 +19,13 @@ class TelaAdicionarItemComanda(TelaBase):
         self.listagem_frame = ttk.LabelFrame(self, text="Itens da Comanda", bootstyle="primary", padding=10)
         self.listagem_frame.grid(row=2, column=0, columnspan=2, padx=18, pady=8, sticky="nsew")
         self.listagem_frame.grid_columnconfigure(0, weight=1)
-        self.treeview_itens = ttk.Treeview(self.listagem_frame, columns=("Nome", "Quantidade", "Preço Unitário", "Subtotal"), show="headings", height=7)
+        self.treeview_itens = ttk.Treeview(self.listagem_frame, columns=("ID", "Nome", "Quantidade", "Preço Unitário", "Subtotal"), show="headings", height=7)
+        self.treeview_itens.heading("ID", text="ID")
         self.treeview_itens.heading("Nome", text="Nome")
         self.treeview_itens.heading("Quantidade", text="Quantidade")
         self.treeview_itens.heading("Preço Unitário", text="Preço Unitário (R$)")
         self.treeview_itens.heading("Subtotal", text="Subtotal (R$)")
+        self.treeview_itens.column("ID", width=0, stretch=False)
         self.treeview_itens.column("Nome", width=150)
         self.treeview_itens.column("Quantidade", width=100)
         self.treeview_itens.column("Preço Unitário", width=120)
@@ -57,6 +59,10 @@ class TelaAdicionarItemComanda(TelaBase):
             atualizar_estoque(produto['id_produto'], quantidade)
             messagebox.showinfo("Sucesso", f"{quantidade}x '{produto['nome']}' adicionado à comanda.")
             self.atualizar_itens_comanda()
+            if hasattr(self.master, 'master') and hasattr(self.master.master, 'atualizar_comandas_e_recibo'):
+                self.master.master.atualizar_comandas_e_recibo()
+            if hasattr(self.master, 'master') and hasattr(self.master.master, 'atualizar_produtos_e_inicial'):
+                self.master.master.atualizar_produtos_e_inicial()
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao adicionar item: {e}")
 
@@ -66,7 +72,7 @@ class TelaAdicionarItemComanda(TelaBase):
         if self.comanda and self.comanda['itens']:
             for item in self.comanda['itens']:
                 subtotal = item['preco_unitario'] * item['quantidade']
-                self.treeview_itens.insert("", "end", values=(item['produto_nome'], item['quantidade'], f"{item['preco_unitario']:.2f}", f"{subtotal:.2f}"))
+                self.treeview_itens.insert("", "end", values=(item.get('id_produto', ''), item['produto_nome'], item['quantidade'], f"{item['preco_unitario']:.2f}", f"{subtotal:.2f}"))
 
     def buscar_nome_produto(codigo_produto):
         produto = obter_produto_por_codigo(codigo_produto)

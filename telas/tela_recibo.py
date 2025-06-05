@@ -50,12 +50,6 @@ class TelaRecibo(TelaBase):
         self.total_label.grid(row=7, column=0, pady=2, sticky="w")
         self.pagamento_label = ttk.Label(self.card, text="Pagamento:", font=("Arial", 13), bootstyle="info")
         self.pagamento_label.grid(row=8, column=0, pady=2, sticky="w")
-        self.fechar_button = ttk.Button(self.card, text="Fechar Recibo", bootstyle="danger", command=self.esconder_recibo, width=22)
-        self.fechar_button.grid(row=9, column=0, pady=18, sticky="ew")
-        self.fechar_button.grid_remove()
-        self.imprimir_button = ttk.Button(self.card, text="Imprimir Recibo", bootstyle="info", command=self.imprimir_recibo, width=22)
-        self.imprimir_button.grid(row=10, column=0, pady=2, sticky="ew")
-        self.imprimir_button.grid_remove()
 
     def carregar_comandas_fechadas(self):
         self.treeview_comandas.delete(*self.treeview_comandas.get_children())
@@ -75,25 +69,56 @@ class TelaRecibo(TelaBase):
 
     def exibir_recibo(self, id_pedido, cpf_cliente, produtos, valor_total, forma_pagamento):
         recibo_dados = gerar_recibo_dados(id_pedido, cpf_cliente, produtos, valor_total, forma_pagamento)
-        self.data_label.config(text=f"Data: {recibo_dados['data']}")
-        self.pedido_label.config(text=f"Pedido: {recibo_dados['pedido']}")
-        self.cpf_label.config(text=f"CPF Cliente: {recibo_dados['cpf_cliente']}")
-        self.lista_produtos_label.config(text=recibo_dados['produtos_texto'])
-        self.total_label.config(text=f"Total: {recibo_dados['total']}")
-        self.pagamento_label.config(text=f"Pagamento: {recibo_dados['pagamento']}")
-        self.fechar_button.grid()
-        self.imprimir_button.grid()
-        self.total_label.config(bootstyle="success", font=("Arial", 16, "bold"))
-        self.pagamento_label.config(bootstyle="info", font=("Arial", 13, "bold"))
-        if valor_total == 0:
-            self.total_label.config(bootstyle="danger")
-        self.fechar_button.config(bootstyle="danger", width=22)
-        self.fechar_button.focus_set()
+        for widget in self.card.winfo_children():
+            widget.destroy()
+        self.card.grid_columnconfigure(0, weight=1)
+        row = 0
+        ttk.Label(self.card, text="GRAAL", font=("Arial", 22, "bold"), bootstyle="primary").grid(row=row, column=0, pady=(8, 2), sticky="ew")
+        row += 1
+        ttk.Label(self.card, text="Recibo de Venda", font=("Arial", 16, "bold"), bootstyle="info").grid(row=row, column=0, pady=(0, 10), sticky="ew")
+        row += 1
+        ttk.Separator(self.card, orient="horizontal").grid(row=row, column=0, sticky="ew", padx=8, pady=4)
+        row += 1
+        ttk.Label(self.card, text=f"Data: {recibo_dados['data']}", font=("Arial", 12)).grid(row=row, column=0, sticky="w", padx=12)
+        row += 1
+        ttk.Label(self.card, text=f"Pedido: {recibo_dados['pedido']}", font=("Arial", 12)).grid(row=row, column=0, sticky="w", padx=12)
+        row += 1
+        if recibo_dados['cpf_cliente']:
+            ttk.Label(self.card, text=f"CPF Cliente: {recibo_dados['cpf_cliente']}", font=("Arial", 12)).grid(row=row, column=0, sticky="w", padx=12)
+            row += 1
+        ttk.Label(self.card, text=f"Pagamento: {recibo_dados['pagamento']}", font=("Arial", 12)).grid(row=row, column=0, sticky="w", padx=12)
+        row += 1
+        ttk.Separator(self.card, orient="horizontal").grid(row=row, column=0, sticky="ew", padx=8, pady=4)
+        row += 1
+        ttk.Label(self.card, text="Itens:", font=("Arial", 13, "bold"), bootstyle="secondary").grid(row=row, column=0, sticky="w", padx=12, pady=(4,0))
+        row += 1
+        # Treeview para itens do recibo
+        tree = ttk.Treeview(self.card, columns=("Nome", "Quantidade", "Preço"), show="headings", height=6)
+        tree.heading("Nome", text="Nome")
+        tree.heading("Quantidade", text="Qtd")
+        tree.heading("Preço", text="Preço (R$)")
+        tree.column("Nome", width=200, anchor="w")
+        tree.column("Quantidade", width=60, anchor="center")
+        tree.column("Preço", width=100, anchor="e")
+        for p in produtos:
+            tree.insert("", "end", values=(p['nome'], p['quantidade'], f"{p['preco']:.2f}"))
+        tree.grid(row=row, column=0, padx=12, pady=2, sticky="ew")
+        self.card.grid_rowconfigure(row, weight=1)
+        row += 1
+        ttk.Separator(self.card, orient="horizontal").grid(row=row, column=0, sticky="ew", padx=8, pady=4)
+        row += 1
+        ttk.Label(self.card, text=f"Total: R$ {valor_total:.2f}", font=("Arial", 18, "bold"), bootstyle="success").grid(row=row, column=0, sticky="e", padx=12, pady=(8, 2))
+        row += 1
+        self.fechar_button = ttk.Button(self.card, text="Fechar Recibo", bootstyle="danger", command=self.esconder_recibo, width=22)
+        self.fechar_button.grid(row=row, column=0, pady=(12, 4), sticky="ew")
+        row += 1
+        self.imprimir_button = ttk.Button(self.card, text="Imprimir Recibo", bootstyle="info", command=self.imprimir_recibo, width=22)
+        self.imprimir_button.grid(row=row, column=0, pady=(0, 12), sticky="ew")
         self._recibo_para_imprimir = recibo_dados
 
     def esconder_recibo(self):
-        self.fechar_button.grid_remove()
-        self.imprimir_button.grid_remove()
+        for widget in self.card.winfo_children():
+            widget.destroy()
         self._recibo_para_imprimir = None
 
     def imprimir_recibo(self):
@@ -124,6 +149,7 @@ class TelaRecibo(TelaBase):
             messagebox.showerror("Erro ao salvar recibo", str(e))
 
     def on_show(self):
-        # Atualiza a listagem sempre que a aba for exibida
         self.carregar_comandas_fechadas()
         self.esconder_recibo()
+        if hasattr(self.master, 'atualizar_comandas_e_recibo'):
+            self.master.atualizar_comandas_e_recibo()

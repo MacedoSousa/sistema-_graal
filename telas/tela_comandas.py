@@ -59,6 +59,8 @@ class TelaComandas(ttk.Frame):
                 "Nova Comanda", f"Comanda número {numero_comanda} aberta."
             )
             self.atualizar_listagem_comandas()
+            if hasattr(self.master, 'atualizar_comandas_e_recibo'):
+                self.master.atualizar_comandas_e_recibo()
         else:
             messagebox.showerror("Erro", "Não foi possível abrir nova comanda.")
 
@@ -116,5 +118,12 @@ class TelaComandas(ttk.Frame):
                 self.atualizar_listagem_comandas()
                 messagebox.showinfo("Sucesso", "Comanda excluída com sucesso.")
                 self.abrir_nova_comanda_ui()
+                if hasattr(self.master, 'atualizar_comandas_e_recibo'):
+                    self.master.atualizar_comandas_e_recibo()
             else:
                 messagebox.showerror("Erro", "Não foi possível excluir a comanda.")
+
+    def on_show(self):
+        self.atualizar_listagem_comandas()
+        if hasattr(self.master, 'atualizar_comandas_e_recibo'):
+            self.master.atualizar_comandas_e_recibo()

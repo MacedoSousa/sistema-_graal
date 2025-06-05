@@ -69,8 +69,27 @@ class TelaFuncionarios(TelaBase):
             self.entry_senha.delete(0, tk.END)
             self.combo_cargo.current(0)
             self.atualizar_listagem_funcionarios()
+            if hasattr(self.master, 'atualizar_funcionarios_e_inicial'):
+                self.master.atualizar_funcionarios_e_inicial()
         except Exception as e:
             messagebox.showerror("Erro", str(e))
+
+    def excluir_funcionario(self):
+        item_selecionado = self.treeview.selection()
+        if not item_selecionado:
+            messagebox.showerror("Erro", "Selecione um funcionário para excluir.")
+            return
+        funcionario_id = self.treeview.item(item_selecionado[0], 'values')[0]
+        if messagebox.askyesno("Confirmação", f"Deseja excluir o funcionário de ID {funcionario_id}?"):
+            try:
+                from servicos.servico_funcionarios import excluir_funcionario
+                excluir_funcionario(funcionario_id)
+                self.atualizar_listagem_funcionarios()
+                messagebox.showinfo("Sucesso", "Funcionário excluído com sucesso!")
+                if hasattr(self.master, 'atualizar_funcionarios_e_inicial'):
+                    self.master.atualizar_funcionarios_e_inicial()
+            except Exception as e:
+                messagebox.showerror("Erro", f"Erro ao excluir funcionário: {e}")
 
     def on_show(self):
         self.entry_nome.delete(0, tk.END)
@@ -78,3 +97,5 @@ class TelaFuncionarios(TelaBase):
         self.entry_senha.delete(0, tk.END)
         self.combo_cargo.current(0)
         self.atualizar_listagem_funcionarios()
+        if hasattr(self.master, 'atualizar_funcionarios_e_inicial'):
+            self.master.atualizar_funcionarios_e_inicial()

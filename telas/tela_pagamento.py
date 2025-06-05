@@ -48,7 +48,7 @@ class TelaPagamento(TelaBase):
 
         ttk.Label(self.frame_pagamento, text="Forma de Pagamento:", font=("Arial", 12, "bold"), bootstyle="primary").grid(row=1, column=0, padx=5, pady=8, sticky="w")
         self.pagamento_combobox = ttk.Combobox(self.frame_pagamento,
-                                               values=["Dinheiro", "Cartão de Crédito", "Cartão de Débito", "Pix"],
+                                               values=["Cartão de Crédito", "Cartão de Débito", "Dinheiro", "Pix"],
                                                font=("Arial", 12),
                                                state="readonly")
         self.pagamento_combobox.grid(row=1, column=1, padx=5, pady=8, sticky="ew")

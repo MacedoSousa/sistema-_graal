@@ -77,7 +77,93 @@ def obter_dados_recibo(id_pedido):
         conn.close()
 
 def listar_recibos():
-    """Retorna lista de recibos para uso no front unificado."""
-    return [
-        {'id': r['id_pedido'], 'valor': r['valor_total']} for r in listar_comandas_fechadas()
-    ]
+    recibos = []
+    for r in listar_comandas_fechadas():
+        conn = conectar_banco_de_dados()
+        funcionario_nome = ''
+        data_venda = r.get('data_venda', '')
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT f.nome FROM pedido p
+                JOIN funcionario f ON p.id_funcionario = f.id_funcionario
+                WHERE p.id_pedido = ?
+            """, (r['id_pedido'],))
+            row = cursor.fetchone()
+            if row:
+                funcionario_nome = row[0]
+        except Exception:
+            funcionario_nome = ''
+        finally:
+            conn.close()
+        recibos.append({
+            'id_pedido': r['id_pedido'],
+            'valor_total': r['valor_total'],
+            'data_venda': data_venda,
+            'cpf_cliente': r['cpf_cliente'],
+            'forma_pagamento': r['forma_pagamento'],
+            'funcionario': funcionario_nome
+        })
+    return recibos
+
+def gerar_recibo_detalhado(recibo):
+    funcionario = recibo.get('funcionario', '-')
+    valor_total = recibo.get('valor_total', 0)
+    forma_pagamento = recibo.get('forma_pagamento', '-')
+    data_venda = recibo.get('data_venda', '-')
+    cpf_cliente = recibo.get('cpf_cliente', '-')
+    detalhes = f"""
+Recibo de Compra
+--------------------------
+Funcionário: {funcionario}
+CPF Cliente: {cpf_cliente}
+Data da Venda: {data_venda}
+Forma de Pagamento: {forma_pagamento}
+Valor Total: R$ {valor_total:.2f}
+--------------------------"""
+    return detalhes
+
+def gerar_recibo_detalhado(id_pedido):
+    conn = conectar_banco_de_dados()
+    if conn is None:
+        return "Recibo não disponível."
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT v.cpf_cliente, v.valor_total, v.forma_pagamento, v.data_venda, f.nome
+            FROM venda v
+            JOIN pedido p ON v.id_pedido = p.id_pedido
+            JOIN funcionario f ON p.id_funcionario = f.id_funcionario
+            WHERE v.id_pedido = ?
+            ORDER BY v.data_venda DESC LIMIT 1
+        """, (id_pedido,))
+        venda = cursor.fetchone()
+        if not venda:
+            cursor.close()
+            return "Recibo não encontrado."
+        cpf_cliente, valor_total, forma_pagamento, data_venda, funcionario_nome = venda
+        cursor.execute("""
+            SELECT pr.nome, ip.quantidade, ip.preco_unitario
+            FROM item_pedido ip
+            JOIN produto pr ON ip.id_produto = pr.id_produto
+            WHERE ip.id_pedido = ?
+        """, (id_pedido,))
+        produtos = cursor.fetchall()
+        cursor.close()
+        produtos_texto = "\n".join(f"{nome} x {quantidade} - R$ {preco:.2f}" for nome, quantidade, preco in produtos)
+        recibo = f"""
+        GRAAL BAR
+        -----------------------------
+        Funcionário: {funcionario_nome}
+        Data: {data_venda}
+        CPF Cliente: {cpf_cliente}
+        Forma de Pagamento: {forma_pagamento}
+        -----------------------------
+        Produtos:
+        {produtos_texto}
+        -----------------------------
+        TOTAL: R$ {valor_total:.2f}
+        """
+        return recibo.strip()
+    finally:
+        conn.close()

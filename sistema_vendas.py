@@ -40,31 +40,52 @@ class SistemaVendas(tk.Tk):
             self.destroy()
             return
 
-        self.sidebar = tk.Frame(self, width=220, bg='white')
-        self.sidebar.pack(side="left", fill="y")
-        self.sidebar.pack_propagate(False)
-
-        self.header = tk.Frame(self, height=56, bg='white')
+        # Header moderno e alinhado
+        self.header = tk.Frame(self, height=56, bg='white', highlightthickness=1, highlightbackground='#e3e8ee')
         self.header.pack(side="top", fill="x")
         self.header.pack_propagate(False)
+
+        # Frame interno para alinhamento central
+        header_inner = tk.Frame(self.header, bg='white')
+        header_inner.pack(fill="both", expand=True)
+
+        # Logo/título à esquerda
+        tk.Label(header_inner, text="Graal - Sistema de Vendas", font=("Segoe UI", 18, "bold"), bg='white', fg='#23272b').pack(side="left", padx=32)
+
+        # Botão de alternância de tema (ao lado do avatar)
+        self.btn_tema = criar_botao_tema(header_inner, callback=self.atualizar_tema)
+        self.btn_tema.pack(side="right", padx=(0, 8), pady=0)
+
+        # Avatar/usuário com menu suspenso (utilitário global)
         usuario = self.usuario_logado.get('nome', 'Usuário')
-        cargo = self.usuario_logado.get('cargo', 'Cargo')
-        self.label_usuario = tk.Label(self.header, text=f"Usuário: {usuario}  |  Cargo: {cargo}", font=("Arial", 13, "bold"), bg='white', fg='black')
-        self.label_usuario.pack(side="left", padx=24)
-        self.btn_logout = tk.Button(self.header, text="Logout", width=10, command=self.logout, bg='#e53e3e', fg='white')
-        self.btn_logout.pack(side="right", padx=24)
-        self.btn_sair = tk.Button(self.header, text="Sair", width=10, command=self.sair, bg='#a0aec0', fg='black')
-        self.btn_sair.pack(side="right", padx=8)
+        usuario_email = self.usuario_logado.get('email', '')
+        from telas.constantes import criar_menu_usuario
+        self.avatar_btn = criar_menu_usuario(
+            header_inner,
+            usuario,
+            usuario_email,
+            logout_callback=self.logout,
+            sair_callback=self.sair
+        )
+        # O método criar_menu_usuario já faz o pack(side="right", ...)
 
-        # Botão de alternância de tema no header
-        self.btn_tema = criar_botao_tema(self.header, callback=self.atualizar_tema)
-
+        # Conteúdo principal
         self.main_frame = tk.Frame(self, bg='white')
         self.main_frame.pack(side="right", fill="both", expand=True)
 
         # Instancia a nova tela unificada
         self.tela_unificada = TelaUnificada(self.main_frame, self.conn)
         self.tela_unificada.pack(fill="both", expand=True)
+
+    def navegar_para_card(self, nome):
+        self.menu_ativo.set(nome)
+        # Garante que só navega para cards permitidos
+        if hasattr(self, 'tela_unificada') and nome in self.tela_unificada.cards:
+            self.tela_unificada.mostrar_card(nome)
+        # Atualiza cor dos ícones
+        for item in self.menu_itens:
+            cor = '#2563eb' if item["nome"] == nome else '#6b7280'
+            item['btn'].config(fg=cor)
 
     def atualizar_dados_tela_unificada(self):
         """Método para atualizar os dados na tela unificada."""
@@ -167,7 +188,10 @@ class SistemaVendas(tk.Tk):
         root.withdraw()
         self.destroy()
         from telas.tela_login import iniciar_tela_login
-        user = iniciar_tela_login(root, mensagem="Sessão encerrada com sucesso.")
+        # Exibe mensagem antes de voltar para o login
+        from tkinter import messagebox
+        messagebox.showinfo("Logout", "Sessão encerrada com sucesso.")
+        user = iniciar_tela_login()
         if user:
             app = SistemaVendas(user)
             app.mainloop()

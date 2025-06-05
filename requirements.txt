@@ -6,5 +6,6 @@ Jinja2==3.1.4          # já está na versão mais recente
 pillow==10.3.0
 python-dateutil==2.9.0.post0  # já está na versão mais recente
 requests==2.32.3       # já está na versão mais recente
+reportlab
 ttkbootstrap==1.10.1
 ttkthemes==3.2.2       # já está na versão mais recente

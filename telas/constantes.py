@@ -2,12 +2,12 @@ import tkinter as tk
 
 TEMA_ESCURO = {
     'fundo_janela': '#232323',
-    'fundo_card': '#262626',  # levemente mais escuro para cards
+    'fundo_card': '#262626',
     'texto_titulo': '#F5F5F5',
     'texto_label': '#B0BEC5',
-    'input_bg': '#292929',  # zebra mais perceptível
+    'input_bg': '#292929',
     'input_fg': '#F5F5F5',
-    'input_border': '#555555',  # borda mais visível
+    'input_border': '#555555',
     'botao_bg': '#232323',
     'botao_fg': '#F5F5F5',
     'label_azul': '#B0BEC5',
@@ -76,13 +76,13 @@ def criar_botao_tema(parent, callback=None):
     btn.pack(side="right", padx=12, pady=8)
     return btn
 
+
 def centralizar_janela(janela, largura=None, altura=None):
     janela.update_idletasks()
     if largura is None or altura is None:
         largura = janela.winfo_width()
         altura = janela.winfo_height()
         if largura == 1 or altura == 1:
-            # fallback para tamanho default se ainda não renderizou
             largura = 800
             altura = 600
     largura_tela = janela.winfo_screenwidth()
@@ -90,3 +90,17 @@ def centralizar_janela(janela, largura=None, altura=None):
     x = (largura_tela // 2) - (largura // 2)
     y = (altura_tela // 2) - (altura // 2)
     janela.geometry(f"{largura}x{altura}+{x}+{y}")
+
+
+def criar_menu_usuario(parent, usuario_nome, usuario_email, logout_callback, sair_callback):
+    avatar_btn = tk.Menubutton(parent, text="👤", font=("Segoe UI Emoji", 20), bg='white', relief='flat', bd=0,
+                                cursor="hand2")
+    menu = tk.Menu(avatar_btn, tearoff=0)
+    menu.add_command(label=usuario_nome, state='disabled')
+    menu.add_command(label=usuario_email, state='disabled')
+    menu.add_separator()
+    menu.add_command(label="Logout", command=logout_callback)
+    menu.add_command(label="Sair do Sistema", foreground='red', command=sair_callback)
+    avatar_btn.config(menu=menu)
+    avatar_btn.pack(side="right", padx=(0, 18))
+    return avatar_btn

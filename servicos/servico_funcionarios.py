@@ -77,3 +77,43 @@ def listar_funcionarios():
     finally:
         if 'conn' in locals():
             conn.close()
+
+def editar_funcionario(id_funcionario, nome, usuario, senha, cargo_nome):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute('SELECT id_cargo FROM cargo WHERE nome = ?', (cargo_nome,))
+        cargo = cur.fetchone()
+        if not cargo:
+            raise Exception('Cargo não encontrado')
+        if senha:
+            senha_hash = sha256(senha.encode()).hexdigest()
+            cur.execute('''
+                UPDATE funcionario SET nome = ?, usuario = ?, senha = ?, id_cargo = ? WHERE id_funcionario = ?
+            ''', (nome, usuario, senha_hash, cargo[0], id_funcionario))
+        else:
+            cur.execute('''
+                UPDATE funcionario SET nome = ?, usuario = ?, id_cargo = ? WHERE id_funcionario = ?
+            ''', (nome, usuario, cargo[0], id_funcionario))
+        conn.commit()
+        return True
+    except Exception as e:
+        logar_erro(e)
+        raise
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+def excluir_funcionario(id_funcionario):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute('DELETE FROM funcionario WHERE id_funcionario = ?', (id_funcionario,))
+        conn.commit()
+        return cur.rowcount > 0
+    except Exception as e:
+        logar_erro(e)
+        raise
+    finally:
+        if 'conn' in locals():
+            conn.close()

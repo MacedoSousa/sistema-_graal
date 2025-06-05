@@ -196,3 +196,62 @@ def listar_comandas():
     """Retorna lista de comandas abertas para uso no front unificado."""
     comandas_dict = obter_comandas_abertas()
     return [{'id': k, 'status': 'aberta'} for k in comandas_dict.keys()]
+
+def listar_comandas_detalhadas():
+    """
+    Retorna lista de comandas abertas com detalhes de itens e total para o frontend.
+    Formato:
+    [
+      {
+        'id': <id>,
+        'status': 'aberta',
+        'itens': [
+            {'id_produto': ..., 'produto_nome': ..., 'quantidade': ..., 'preco_unitario': ...},
+            ...
+        ],
+        'total': <float>
+      }, ...
+    ]
+    """
+    conn = conectar_banco_de_dados()
+    if conn is None:
+        return []
+    try:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        # Buscar todas as comandas abertas
+        cursor.execute("SELECT id_pedido FROM pedido WHERE status = 'aberta'")
+        comandas_ids = [row[0] for row in cursor.fetchall()]
+        resultado = []
+        for comanda_id in comandas_ids:
+            # Buscar itens da comanda
+            cursor.execute('''
+                SELECT ip.id_produto, pr.nome as produto_nome, ip.quantidade, ip.preco_unitario
+                FROM item_pedido ip
+                JOIN produto pr ON ip.id_produto = pr.id_produto
+                WHERE ip.id_pedido = ?
+            ''', (comanda_id,))
+            itens = [
+                {
+                    'id_produto': row['id_produto'],
+                    'produto_nome': row['produto_nome'],
+                    'quantidade': row['quantidade'],
+                    'preco_unitario': row['preco_unitario']
+                }
+                for row in cursor.fetchall()
+            ]
+            total = sum(item['quantidade'] * item['preco_unitario'] for item in itens)
+            resultado.append({
+                'id': str(comanda_id),
+                'status': 'aberta',
+                'itens': itens,
+                'total': float(total)
+            })
+        return resultado
+    except Exception as e:
+        print(f"Erro ao listar comandas detalhadas: {e}")
+        return []
+    finally:
+        if conn:
+            cursor.close()
+            conn.close()

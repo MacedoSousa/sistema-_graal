@@ -32,3 +32,28 @@ def obter_vendas_do_mes_atual():
 
 def obter_vendas_mes_atual():
     return obter_vendas_do_mes_atual()
+
+def obter_vendas_do_mes():
+    return obter_vendas_do_mes_atual()
+
+def obter_ultimas_vendas(limite=5):
+    cnx = conectar_banco_de_dados()
+    if cnx is None:
+        return []
+    try:
+        cursor = cnx.cursor()
+        cursor.execute(
+            "SELECT data_venda, valor_total FROM venda ORDER BY data_venda DESC LIMIT ?", (limite,)
+        )
+        vendas = [
+            {'data': row[0], 'valor': row[1]} for row in cursor.fetchall()
+        ]
+        return vendas
+    except Exception as e:
+        logar_erro(e)
+        print(f"Erro ao obter últimas vendas: {e}")
+        return []
+    finally:
+        if cnx:
+            cursor.close()
+            cnx.close()

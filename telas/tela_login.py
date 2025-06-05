@@ -2,8 +2,9 @@ import tkinter as tk
 from tkinter import messagebox
 from telas.constantes import get_cor, centralizar_janela
 from servicos.servico_funcionarios import autenticar
+from PIL import Image, ImageTk
+import os
 
-# Função para placeholder em Entry
 class PlaceholderEntry(tk.Entry):
     def __init__(self, master=None, placeholder="", color='#bdbdbd', **kwargs):
         super().__init__(master, **kwargs)
@@ -32,7 +33,6 @@ def iniciar_tela_login():
     login_win.configure(bg='#f6faff')
     login_win.resizable(False, False)
 
-    # Sombra e card com borda mais arredondada
     sombra = tk.Frame(login_win, bg='#e3e8ee', highlightthickness=0, bd=0)
     sombra.place(relx=0.5, rely=0.5, anchor="center", width=420, height=440, x=10, y=10)
     card = tk.Frame(login_win, bg='white', highlightthickness=0)
@@ -41,30 +41,31 @@ def iniciar_tela_login():
     card.configure(highlightbackground='#e3e8ee', highlightcolor='#e3e8ee', highlightthickness=2)
     card.pack_propagate(False)
 
-    # Ícone estilizado
-    icon_circle = tk.Canvas(card, width=64, height=64, bg='white', highlightthickness=0)
-    icon_circle.create_oval(4, 4, 60, 60, fill='#e8f0fe', outline='')
-    icon_circle.create_text(32, 32, text='🛒', font=("Segoe UI Emoji", 28), fill='#2563eb')
-    icon_circle.pack(pady=(24, 0))
+    img_path = os.path.join(os.path.dirname(__file__), '..', 'img', 'graal.jpg')
+    try:
+        img = Image.open(img_path)
+        img = img.resize((90, 90))
+        foto = ImageTk.PhotoImage(img)
+        img_label = tk.Label(card, image=foto, bg='white')
+        img_label.image = foto
+        img_label.pack(pady=(18, 0))
+    except Exception as e:
+        pass
 
-    # Título e subtítulo
     tk.Label(card, text="Bem-vindo!", font=("Segoe UI", 20, "bold"), bg='white', fg='#23272b').pack(pady=(18, 0))
     tk.Label(card, text="Acesse sua conta para continuar", font=("Segoe UI", 12), bg='white', fg='#7b7b7b').pack(pady=(2, 18))
 
-    # Usuário
     usuario_label = tk.Label(card, text="Usuário", font=("Segoe UI", 11, "bold"), bg='white', fg='#23272b')
     usuario_label.pack(anchor='w', padx=38, pady=(0, 0))
     entry_usuario = PlaceholderEntry(card, placeholder="Digite seu usuário", font=("Segoe UI", 12), fg='#23272b', bg='#f6faff', relief="flat", bd=0, highlightthickness=0)
     entry_usuario.pack(fill='x', padx=38, pady=(0, 14), ipady=9)
 
-    # Senha
     senha_label = tk.Label(card, text="Senha", font=("Segoe UI", 11, "bold"), bg='white', fg='#23272b')
     senha_label.pack(anchor='w', padx=38, pady=(0, 0))
     senha_frame = tk.Frame(card, bg='white')
     senha_frame.pack(fill='x', padx=38, pady=(0, 20))
     entry_senha = PlaceholderEntry(senha_frame, placeholder="Digite sua senha", font=("Segoe UI", 12), fg='#23272b', bg='#f6faff', relief="flat", bd=0, highlightthickness=0, show='*')
     entry_senha.pack(side='left', fill='x', expand=True, ipady=9)
-    # Botão mostrar/ocultar senha
     def toggle_senha():
         if entry_senha.cget('show') == '':
             entry_senha.config(show='*')
@@ -78,12 +79,10 @@ def iniciar_tela_login():
     def login():
         usuario = entry_usuario.get().strip()
         senha = entry_senha.get().strip()
-        # Remove placeholder do valor
         if usuario == entry_usuario.placeholder:
             usuario = ''
         if senha == entry_senha.placeholder:
             senha = ''
-        # Reset visual
         entry_usuario.config(highlightbackground='#e3e8ee')
         entry_senha.config(highlightbackground='#e3e8ee')
         if not usuario or not senha:
@@ -103,7 +102,6 @@ def iniciar_tela_login():
     def on_enter(event=None):
         login()
 
-    # Botão de login com efeito hover
     def on_enter_btn(e):
         btn_login.config(bg='#2563eb', fg='white')
     def on_leave_btn(e):

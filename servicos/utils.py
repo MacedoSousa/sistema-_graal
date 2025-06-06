@@ -10,7 +10,6 @@ def logar_erro(e):
     logging.error(str(e))
 
 def validar_cpf(cpf):
-    """Valida se o CPF possui 11 dígitos numéricos."""
     return re.match(r'^\d{11}$', cpf) is not None
 
 def campo_obrigatorio(valor):
@@ -22,7 +21,6 @@ def get_base_dir():
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def formatar_preco_brasileiro(valor):
-    """Formata um número float para o padrão brasileiro: 1.234,56"""
     try:
         return f"{valor:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
     except Exception:

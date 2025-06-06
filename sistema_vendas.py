@@ -40,23 +40,18 @@ class SistemaVendas(tk.Tk):
             self.destroy()
             return
 
-        # Header moderno e alinhado
         self.header = tk.Frame(self, height=56, bg='white', highlightthickness=1, highlightbackground='#e3e8ee')
         self.header.pack(side="top", fill="x")
         self.header.pack_propagate(False)
 
-        # Frame interno para alinhamento central
         header_inner = tk.Frame(self.header, bg='white')
         header_inner.pack(fill="both", expand=True)
 
-        # Logo/título à esquerda
         tk.Label(header_inner, text="Graal - Sistema de Vendas", font=("Segoe UI", 18, "bold"), bg='white', fg='#23272b').pack(side="left", padx=32)
 
-        # Botão de alternância de tema (ao lado do avatar)
         self.btn_tema = criar_botao_tema(header_inner, callback=self.atualizar_tema)
         self.btn_tema.pack(side="right", padx=(0, 8), pady=0)
 
-        # Avatar/usuário com menu suspenso (utilitário global)
         usuario = self.usuario_logado.get('nome', 'Usuário')
         usuario_email = self.usuario_logado.get('email', '')
         from telas.constantes import criar_menu_usuario
@@ -67,35 +62,26 @@ class SistemaVendas(tk.Tk):
             logout_callback=self.logout,
             sair_callback=self.sair
         )
-        # O método criar_menu_usuario já faz o pack(side="right", ...)
 
-        # Conteúdo principal
         self.main_frame = tk.Frame(self, bg='white')
         self.main_frame.pack(side="right", fill="both", expand=True)
 
-        # Instancia a nova tela unificada
         self.tela_unificada = TelaUnificada(self.main_frame, self.conn)
         self.tela_unificada.pack(fill="both", expand=True)
 
     def navegar_para_card(self, nome):
         self.menu_ativo.set(nome)
-        # Garante que só navega para cards permitidos
         if hasattr(self, 'tela_unificada') and nome in self.tela_unificada.cards:
             self.tela_unificada.mostrar_card(nome)
-        # Atualiza cor dos ícones
         for item in self.menu_itens:
             cor = '#2563eb' if item["nome"] == nome else '#6b7280'
             item['btn'].config(fg=cor)
 
     def atualizar_dados_tela_unificada(self):
-        """Método para atualizar os dados na tela unificada."""
         try:
-            # Exemplo: atualizar um label com o total de produtos
             total_produtos = self.obter_total_produtos()
             self.tela_unificada.label_total_produtos.config(text=f"Total de Produtos: {total_produtos}")
-            
-            # Atualizar outros dados conforme necessário
-            # ...
+
         except Exception as e:
             print(f"Erro ao atualizar dados na tela unificada: {e}")
 
@@ -148,7 +134,6 @@ class SistemaVendas(tk.Tk):
         self.telas['inicial'].atualizar_resumo_funcionarios(total_funcionarios)
 
     def atualizar_todas_telas(self):
-        """Atualiza todas as telas críticas após alterações relevantes."""
         if 'comandas' in self.telas:
             self.telas['comandas'].atualizar_listagem_comandas()
         if 'recibo' in self.telas:
@@ -181,14 +166,12 @@ class SistemaVendas(tk.Tk):
             self.atualizar_dados_tela_inicial()
 
     def logout(self):
-        # Volta para tela de login sem encerrar o processo
         if hasattr(self, 'conn') and self.conn:
             self.conn.close()
         root = tk.Tk()
         root.withdraw()
         self.destroy()
         from telas.tela_login import iniciar_tela_login
-        # Exibe mensagem antes de voltar para o login
         from tkinter import messagebox
         messagebox.showinfo("Logout", "Sessão encerrada com sucesso.")
         user = iniciar_tela_login()
@@ -197,7 +180,6 @@ class SistemaVendas(tk.Tk):
             app.mainloop()
 
     def sair(self):
-        # Encerra o sistema completamente
         if hasattr(self, 'conn') and self.conn:
             self.conn.close()
         self.destroy()

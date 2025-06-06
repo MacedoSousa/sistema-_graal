@@ -14,14 +14,12 @@ class TelaProdutos(tk.Frame):
         self.criar_card_produtos()
 
     def criar_card_produtos(self):
-        # Cabeçalho
         cabecalho_frame = tk.Frame(self, bg=get_cor("cabecalho"))
         cabecalho_frame.pack(fill='x')
 
         titulo = tk.Label(cabecalho_frame, text="Produtos", bg=get_cor("cabecalho"), fg="white", font=("Segoe UI", 16, "bold"))
         titulo.pack(side='left', padx=10, pady=10)
 
-        # Botão Adicionar Produto
         botao_adicionar = tk.Button(
             cabecalho_frame,
             text="Adicionar Produto",
@@ -36,7 +34,6 @@ class TelaProdutos(tk.Frame):
         )
         botao_adicionar.pack(side='right', padx=10, pady=10)
 
-        # Tabela de Produtos (agora com coluna Peso/Unidade)
         self.tree = ttk.Treeview(self, columns=("ID", "Nome", "Preço", "Quantidade", "Peso/Unidade"), show="headings")
         self.tree.pack(fill='both', expand=True, padx=10, pady=10)
 
@@ -53,9 +50,7 @@ class TelaProdutos(tk.Frame):
 
         self.atualizar_lista_produtos()
 
-        # Evento duplo clique para editar produto
         self.tree.bind("<Double-1>", self.editar_produto_por_duplo_clique)
-        # Remove binding de clique simples para editar
         self.tree.unbind("<Button-1>")
 
     def atualizar_lista_produtos(self):
@@ -63,7 +58,6 @@ class TelaProdutos(tk.Frame):
             self.tree.delete(i)
         produtos = listar_produtos()
         for produto in produtos:
-            # Exibe unidade junto ao peso, se disponível
             unidade = produto.get('unidade', '')
             peso = produto.get('peso', '')
             if unidade and peso:
@@ -79,14 +73,12 @@ class TelaProdutos(tk.Frame):
             ))
 
     def abrir_modal_produto_moderno(self, produto=None):
-        # Criação da janela modal
         self.modal = tk.Toplevel(self)
         self.modal.title("Adicionar/Editar Produto")
-        self.modal.geometry("420x600")  # Aumenta altura para garantir espaço para botões
+        self.modal.geometry("420x600")  
         self.modal.resizable(False, False)
-        self.modal.grab_set()  # Foca a janela modal
+        self.modal.grab_set() 
 
-        # Campos do formulário
         labels = [
             ("Nome:", "entry_nome"),
             ("Código de Barras:", "entry_codigo_barras"),
@@ -112,10 +104,8 @@ class TelaProdutos(tk.Frame):
                 self.entries[entry_attr] = entry
                 setattr(self, entry_attr, entry)
 
-        # Espaço expansível para empurrar os botões para o rodapé
         tk.Frame(self.modal, bg='#f6faff').pack(fill='both', expand=True)
 
-        # Botões
         frame_botoes = tk.Frame(self.modal, bg='#f6faff')
         frame_botoes.pack(side='bottom', pady=16, padx=16, fill='x')
 
@@ -174,9 +164,7 @@ class TelaProdutos(tk.Frame):
         )
         botao_cancelar.pack(side='left', padx=6, pady=0, fill='x', expand=True)
 
-        # Preenche os campos se for edição
         if produto:
-            # Se for tupla/lista da treeview, busca o produto completo pelo ID
             if not isinstance(produto, dict):
                 try:
                     from servicos.servico_produtos import obter_produto_por_codigo
@@ -207,7 +195,6 @@ class TelaProdutos(tk.Frame):
                 self.entry_estoque.insert(0, produto_dict.get('estoque', ''))
 
     def salvar_produto(self, produto_existente):
-        # Coleta os dados dos campos
         nome = self.entry_nome.get().strip()
         codigo_barras = self.entry_codigo_barras.get().strip()
         preco = self.entry_preco.get().strip()
@@ -217,7 +204,6 @@ class TelaProdutos(tk.Frame):
         fornecedor = self.entry_fornecedor.get().strip()
         estoque = self.entry_estoque.get().strip()
 
-        # Validação básica
         if not all([nome, codigo_barras, preco, validade, peso, fornecedor, estoque]):
             messagebox.showwarning("Atenção", "Todos os campos devem ser preenchidos.")
             return
@@ -241,9 +227,7 @@ class TelaProdutos(tk.Frame):
             'estoque': estoque
         }
         if produto_existente:
-            # Edição: precisa do id
             produto_dict['id_produto'] = produto_existente[0] if not isinstance(produto_existente, dict) else produto_existente.get('id')
-            # Chama função de atualização
             from servicos.database import conectar_banco_de_dados
             from servicos.servico_produtos import atualizar_produto
             conn = conectar_banco_de_dados()
@@ -251,7 +235,6 @@ class TelaProdutos(tk.Frame):
                 atualizar_produto(conn, produto_dict)
                 conn.close()
         else:
-            # Novo produto
             from servicos.servico_produtos import salvar_novo_produto
             salvar_novo_produto(produto_dict)
 
@@ -287,5 +270,3 @@ class TelaProdutos(tk.Frame):
             self.atualizar_lista_produtos()
             if self.atualizar_todas_listas:
                 self.atualizar_todas_listas()
-
-    # Outros métodos auxiliares se necessário

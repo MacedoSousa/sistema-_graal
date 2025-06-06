@@ -51,7 +51,6 @@ class TelaFuncionarios(tk.Frame):
             btn_del.pack(side='right', padx=0, pady=10)
 
     def abrir_modal_adicionar(self):
-        # Modal de cadastro de funcionário
         modal = tk.Toplevel(self)
         modal.title("Adicionar Funcionário")
         modal.geometry("400x350")
@@ -98,7 +97,6 @@ class TelaFuncionarios(tk.Frame):
         tk.Button(modal, text="Cancelar", command=modal.destroy, bg="#e3e8ee", fg="#23272b", font=("Segoe UI", 11), relief=tk.FLAT, cursor="hand2").pack(pady=(8, 0), ipadx=8, ipady=4)
 
     def abrir_modal_editar(self, funcionario_id):
-        # Modal de edição de funcionário
         from servicos.servico_funcionarios import listar_funcionarios, editar_funcionario
         funcionario = next((f for f in listar_funcionarios() if f['id'] == funcionario_id), None)
         if not funcionario:

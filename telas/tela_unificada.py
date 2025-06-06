@@ -116,7 +116,6 @@ class TelaUnificada(tk.Frame):
         self.limpar_area()
         TelaRecibo(self.area_cards).pack(fill='both', expand=True)
 
-    # Inicializa com dashboard
     def _inicializar_dashboard(self):
         self.abrir_dashboard()
 

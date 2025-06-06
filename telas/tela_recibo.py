@@ -59,31 +59,29 @@ class TelaRecibo(tk.Frame):
         )
         card.grid(row=row, column=col, padx=24, pady=18, sticky='n')
         card.configure(relief='raised')
-        # Sombra fake
         sombra = tk.Frame(self.cards_frame, bg='#e3e8ee', width=320, height=180)
         sombra.grid(row=row, column=col, padx=28, pady=22, sticky='n')
         sombra.lower(card)
-        # Header do card
         header = tk.Frame(card, bg='white')
         header.pack(fill='x', pady=(8, 0))
         tk.Label(header, text=f"Recibo #{recibo.get('id_pedido','-')}", font=("Segoe UI", 14, "bold"), bg='white', fg='#2563eb').pack(side='left', padx=(0, 8))
-        tk.Label(header, text=f"R$ {recibo.get('valor_total', 0):.2f}", font=("Segoe UI", 13, "bold"), bg='white', fg='#22c55e').pack(side='right', padx=(8, 0))
-        # Linha separadora
+        valor_total = recibo.get('valor_total', 0)
+        try:
+            valor_total = float(valor_total)
+        except Exception:
+            valor_total = 0.0
+        tk.Label(header, text=f"R$ {valor_total:.2f}", font=("Segoe UI", 13, "bold"), bg='white', fg='#22c55e').pack(side='right', padx=(8, 0))
         tk.Frame(card, bg='#e3e8ee', height=2).pack(fill='x', padx=8, pady=(6, 6))
-        # Dados principais
         info = tk.Frame(card, bg='white')
         info.pack(fill='x', pady=(0, 0))
-        tk.Label(info, text=f"Funcionário:", font=("Segoe UI", 10, "bold"), bg='white', fg='#6b7280').grid(row=0, column=0, sticky='w')
-        tk.Label(info, text=recibo.get('funcionario', '-'), font=("Segoe UI", 11), bg='white', fg='#23272b').grid(row=0, column=1, sticky='w', padx=(4, 16))
-        tk.Label(info, text=f"Data:", font=("Segoe UI", 10, "bold"), bg='white', fg='#6b7280').grid(row=1, column=0, sticky='w')
-        tk.Label(info, text=recibo.get('data_venda', '-'), font=("Segoe UI", 11), bg='white', fg='#23272b').grid(row=1, column=1, sticky='w', padx=(4, 16))
-        tk.Label(info, text=f"CPF Cliente:", font=("Segoe UI", 10, "bold"), bg='white', fg='#6b7280').grid(row=2, column=0, sticky='w')
-        tk.Label(info, text=recibo.get('cpf_cliente', '-'), font=("Segoe UI", 11), bg='white', fg='#23272b').grid(row=2, column=1, sticky='w', padx=(4, 16))
-        tk.Label(info, text=f"Pagamento:", font=("Segoe UI", 10, "bold"), bg='white', fg='#6b7280').grid(row=3, column=0, sticky='w')
-        tk.Label(info, text=recibo.get('forma_pagamento', '-'), font=("Segoe UI", 11), bg='white', fg='#23272b').grid(row=3, column=1, sticky='w', padx=(4, 16))
+        tk.Label(info, text=f"Data:", font=("Segoe UI", 10, "bold"), bg='white', fg='#6b7280').grid(row=0, column=0, sticky='w')
+        tk.Label(info, text=recibo.get('data_venda', '-'), font=("Segoe UI", 11), bg='white', fg='#23272b').grid(row=0, column=1, sticky='w', padx=(4, 16))
+        tk.Label(info, text=f"CPF Cliente:", font=("Segoe UI", 10, "bold"), bg='white', fg='#6b7280').grid(row=1, column=0, sticky='w')
+        tk.Label(info, text=recibo.get('cpf_cliente', '-'), font=("Segoe UI", 11), bg='white', fg='#23272b').grid(row=1, column=1, sticky='w', padx=(4, 16))
+        tk.Label(info, text=f"Pagamento:", font=("Segoe UI", 10, "bold"), bg='white', fg='#6b7280').grid(row=2, column=0, sticky='w')
+        tk.Label(info, text=recibo.get('forma_pagamento', '-'), font=("Segoe UI", 11), bg='white', fg='#23272b').grid(row=2, column=1, sticky='w', padx=(4, 16))
         for i in range(4):
             info.grid_columnconfigure(i, weight=1)
-        # Botão detalhes
         btn = tk.Button(
             card,
             text="Detalhes",

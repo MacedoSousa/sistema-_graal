@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from telas.constantes import get_cor
 from servicos.servico_comandas import listar_comandas_detalhadas
-from servicos.servico_funcionarios import listar_funcionarios
 from servicos.servico_pagamento import registrar_pagamento
 
 class TelaPagamento(tk.Frame):
@@ -11,11 +10,9 @@ class TelaPagamento(tk.Frame):
         self.atualizar_todas_listas = atualizar_todas_listas
         self.comandas = []
         self.comanda_selecionada = None
-        self.funcionarios = listar_funcionarios()
         self.filtro_var = tk.StringVar()
         self.cpf_var = tk.StringVar()
         self.forma_pagamento_var = tk.StringVar()
-        self.funcionario_var = tk.StringVar()
         self._criar_widgets()
         self.atualizar_lista_comandas()
 
@@ -97,15 +94,11 @@ class TelaPagamento(tk.Frame):
 
         card_pagamento = tk.Frame(modal, bg='white', highlightbackground='#e3e8ee', highlightthickness=2, bd=0)
         card_pagamento.pack(fill='x', padx=24, pady=(0, 12))
-        tk.Label(card_pagamento, text="Funcionário:", font=("Segoe UI", 11), bg='white').pack(anchor='w', padx=18, pady=(14, 0))
-        funcionarios_nomes = [f["nome"] for f in self.funcionarios]
-        funcionario_cb = ttk.Combobox(card_pagamento, values=funcionarios_nomes, textvariable=self.funcionario_var, font=("Segoe UI", 11), state="readonly")
-        funcionario_cb.pack(anchor='w', padx=18, pady=(0, 8))
-        funcionario_cb.set("Selecione o funcionário")
         tk.Label(card_pagamento, text="CPF do Cliente:", font=("Segoe UI", 11), bg='white').pack(anchor='w', padx=18, pady=(0, 0))
         entry_cpf = tk.Entry(card_pagamento, textvariable=self.cpf_var, font=("Segoe UI", 11), width=22)
         entry_cpf.pack(anchor='w', padx=18, pady=(0, 8))
-        entry_cpf.insert(0, "Opcional")
+        if not self.cpf_var.get():
+            entry_cpf.insert(0, "Opcional")
         tk.Label(card_pagamento, text="Forma de Pagamento:", font=("Segoe UI", 11), bg='white').pack(anchor='w', padx=18, pady=(0, 0))
         formas_pagamento = ["Cartão Crédito", "Cartão Débito", "PIX", "Dinheiro"]
         forma_cb = ttk.Combobox(card_pagamento, values=formas_pagamento, textvariable=self.forma_pagamento_var, font=("Segoe UI", 11), state="readonly")
@@ -142,12 +135,8 @@ class TelaPagamento(tk.Frame):
                 troco_var.set("")
         valor_pago_var.trace_add('write', calcular_troco)
         def confirmar():
-            funcionario = self.funcionario_var.get()
             cpf = self.cpf_var.get()
             forma = self.forma_pagamento_var.get()
-            if not funcionario or funcionario == "Selecione o funcionário":
-                messagebox.showerror("Erro", "Selecione o funcionário.", parent=modal)
-                return
             if not forma or forma == "Selecione a forma de pagamento":
                 messagebox.showerror("Erro", "Selecione a forma de pagamento.", parent=modal)
                 return
@@ -162,8 +151,7 @@ class TelaPagamento(tk.Frame):
                     messagebox.showerror("Erro", "Valor insuficiente para pagamento.", parent=modal)
                     return
             try:
-                from servicos.servico_pagamento import registrar_pagamento
-                registrar_pagamento(comanda['id'], funcionario, comanda['total'], forma, cpf)
+                registrar_pagamento(comanda['id'], comanda['total'], forma, cpf)
                 messagebox.showinfo("Sucesso", "Pagamento realizado com sucesso!", parent=modal)
                 modal.destroy()
                 self.atualizar_lista_comandas()

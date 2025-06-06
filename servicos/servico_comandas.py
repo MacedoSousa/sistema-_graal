@@ -219,12 +219,12 @@ def listar_comandas_detalhadas():
     try:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        # Buscar todas as comandas abertas
+
         cursor.execute("SELECT id_pedido FROM pedido WHERE status = 'aberta'")
         comandas_ids = [row[0] for row in cursor.fetchall()]
         resultado = []
         for comanda_id in comandas_ids:
-            # Buscar itens da comanda
+
             cursor.execute('''
                 SELECT ip.id_produto, pr.nome as produto_nome, ip.quantidade, ip.preco_unitario
                 FROM item_pedido ip

@@ -117,10 +117,9 @@ class TelaRecibo(tk.Frame):
             card.logo_img = logo_img
             tk.Label(card, image=logo_img, bg='white').pack(pady=(0, 8))
         tk.Label(card, text=f"Recibo #{recibo_id}", font=("Segoe UI", 16, "bold"), bg='white', fg='#2563eb').pack(pady=(0, 8))
-        tk.Label(card, text=f"Funcionário: {dados.get('funcionario', '-')}", font=("Segoe UI", 12), bg='white').pack(anchor='w', padx=8)
-        tk.Label(card, text=f"CPF Cliente: {dados.get('cpf_cliente', '-')}", font=("Segoe UI", 12), bg='white').pack(anchor='w', padx=8)
-        tk.Label(card, text=f"Data da Compra: {dados.get('data_venda', '-')}", font=("Segoe UI", 12), bg='white').pack(anchor='w', padx=8)
-        tk.Label(card, text=f"Forma de Pagamento: {dados.get('forma_pagamento', '-')}", font=("Segoe UI", 12), bg='white').pack(anchor='w', padx=8)
+        tk.Label(card, text=f"CPF Cliente: {dados.get('cpf_cliente', '-')}" , font=("Segoe UI", 12), bg='white').pack(anchor='w', padx=8)
+        tk.Label(card, text=f"Data da Compra: {dados.get('data_venda', '-')}" , font=("Segoe UI", 12), bg='white').pack(anchor='w', padx=8)
+        tk.Label(card, text=f"Forma de Pagamento: {dados.get('forma_pagamento', '-')}" , font=("Segoe UI", 12), bg='white').pack(anchor='w', padx=8)
         tk.Label(card, text="Produtos:", font=("Segoe UI", 12, "bold"), bg='white').pack(anchor='w', padx=8, pady=(10, 0))
         for prod in dados['produtos']:
             tk.Label(card, text=f"- {prod['nome']} x{prod['quantidade']} (R$ {prod['preco']:.2f} un)", font=("Segoe UI", 11), bg='white').pack(anchor='w', padx=18)

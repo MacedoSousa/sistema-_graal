@@ -3,7 +3,7 @@ from datetime import datetime
 from servicos.database import conectar_banco_de_dados
 from servicos.utils import logar_erro
 
-def registrar_pagamento(numero_comanda, cpf_cliente, valor_total, forma_pagamento):
+def registrar_pagamento(numero_comanda, valor_total, forma_pagamento, cpf_cliente):
     cnx = conectar_banco_de_dados()
     if cnx is None:
         raise Exception("Não foi possível conectar ao banco de dados.")
@@ -19,11 +19,11 @@ def registrar_pagamento(numero_comanda, cpf_cliente, valor_total, forma_pagament
             raise Exception(f"Comanda {numero_comanda} já está fechada.")
 
         query_venda = """
-            INSERT INTO venda (id_pedido, data_venda, cpf_cliente, valor_total, forma_pagamento)
+            INSERT INTO venda (id_pedido, data_venda, valor_total, forma_pagamento, cpf_cliente)
             VALUES (?, ?, ?, ?, ?)
         """
         data_venda = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        result = cursor.execute(query_venda, (numero_comanda, data_venda, cpf_cliente, valor_total, forma_pagamento))
+        result = cursor.execute(query_venda, (numero_comanda, data_venda, valor_total, forma_pagamento, cpf_cliente))
 
         if result.rowcount == 0:
             raise Exception("Erro ao registrar venda. Nenhuma linha afetada.")

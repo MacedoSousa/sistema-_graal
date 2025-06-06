@@ -49,12 +49,12 @@ def obter_dados_recibo(id_pedido):
         return None
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT cpf_cliente, valor_total, forma_pagamento FROM venda WHERE id_pedido = ? ORDER BY data_venda DESC LIMIT 1", (id_pedido,))
+        cursor.execute("SELECT cpf_cliente, valor_total, forma_pagamento, data_venda FROM venda WHERE id_pedido = ? ORDER BY data_venda DESC LIMIT 1", (id_pedido,))
         venda = cursor.fetchone()
         if not venda:
             cursor.close()
             return None
-        cpf_cliente, valor_total, forma_pagamento = venda
+        cpf_cliente, valor_total, forma_pagamento, data_venda = venda
         cursor.execute("""
             SELECT pr.nome, ip.quantidade, ip.preco_unitario
             FROM item_pedido ip
@@ -71,7 +71,8 @@ def obter_dados_recibo(id_pedido):
             'cpf_cliente': cpf_cliente,
             'produtos': produtos,
             'valor_total': valor_total,
-            'forma_pagamento': forma_pagamento
+            'forma_pagamento': forma_pagamento,
+            'data_venda': data_venda
         }
     finally:
         conn.close()
